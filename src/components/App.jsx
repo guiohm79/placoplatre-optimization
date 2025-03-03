@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Header from './Header';
 import PlaqueDimensionsForm from './PlaqueDimensionsForm';
 import MurForm from './MurForm';
@@ -52,6 +52,16 @@ function App() {
   
   // État pour le résultat de l'optimisation
   const [resultat, setResultat] = useState(null);
+  
+  // Exposer la fonction modifierOuverture pour le débogage
+  useEffect(() => {
+    window.onModifierOuverture = modifierOuverture;
+    
+    // Nettoyage lors du démontage du composant
+    return () => {
+      window.onModifierOuverture = undefined;
+    };
+  }, []);
   
   // Pour ajouter un nouveau mur
   const ajouterMur = () => {
@@ -204,7 +214,7 @@ function App() {
     }));
   };
   
-  // Fonction provisoire pour simuler l'optimisation
+  // Fonction pour calculer l'optimisation
   const optimiserDecoupes = () => {
     // Vérifier s'il y a des erreurs
     if (Object.keys(erreurs).length > 0) {
@@ -246,7 +256,7 @@ function App() {
             onAjouterOuverture={ajouterOuverture}
             onSupprimerOuverture={supprimerOuverture}
             erreurs={erreurs}
-/>
+          />
           
           <div className="action-buttons">
             <button className="btn btn-success" onClick={optimiserDecoupes}>
@@ -289,6 +299,7 @@ function App() {
               onOuvertureSelect={setOuvertureSelectionneeId}
               ouvertureSelectionneeId={ouvertureSelectionneeId}
               resultat={resultat?.plaques?.filter(p => p.murId === murSelectionneeId)}
+              onModifierOuverture={modifierOuverture}
             />
           </div>
           

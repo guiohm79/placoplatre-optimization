@@ -8,7 +8,8 @@ function MurVisualisation({
   echelle = 0.5,
   onOuvertureSelect,
   ouvertureSelectionneeId,
-  resultat
+  resultat,
+  onModifierOuverture
 }) {
   const visualisationRef = useRef(null);
   const [zoom, setZoom] = useState(echelle);
@@ -57,6 +58,76 @@ function MurVisualisation({
       });
     }
   };
+  
+  // NOUVEAU: Gestionnaire pour le déplacement de la souris pendant le drag
+  const handleMouseMove = (e) => {
+    if (!isDragging || !ouvertureSelectionneeId) return;
+    
+    e.preventDefault();
+    
+    if (visualisationRef.current) {
+      const rect = visualisationRef.current.getBoundingClientRect();
+      
+      // Calculer la nouvelle position
+      const newX = Math.max(0, Math.round((e.clientX - rect.left - dragStartPos.x) / zoom));
+      const newY = Math.max(0, Math.round((e.clientY - rect.top - dragStartPos.y) / zoom));
+      
+      // Récupérer l'ouverture sélectionnée
+      const ouverture = mur.ouvertures.find(o => o.id === ouvertureSelectionneeId);
+      
+      // Limiter la position pour que l'ouverture reste dans le mur
+      const maxX = mur.largeur - ouverture.largeur;
+      const maxY = mur.hauteur - ouverture.hauteur;
+      
+      const limitedX = Math.min(newX, maxX);
+      const limitedY = Math.min(newY, maxY);
+      
+      // Mettre à jour la position de l'ouverture via le callback
+      if (ouverture.x !== limitedX) {
+        dispatchPositionChange(ouvertureSelectionneeId, 'x', limitedX);
+      }
+      
+      if (ouverture.y !== limitedY) {
+        dispatchPositionChange(ouvertureSelectionneeId, 'y', limitedY);
+      }
+    }
+  };
+  
+  // NOUVEAU: Gestionnaire pour la fin du drag
+  const handleMouseUp = () => {
+    if (isDragging) {
+      setIsDragging(false);
+    }
+  };
+  
+  // Fonction pour dispatcher les changements de position
+  const dispatchPositionChange = (id, champ, valeur) => {
+    // Utiliser la prop onModifierOuverture passée par le parent
+    if (typeof onModifierOuverture === 'function') {
+      onModifierOuverture(id, champ, valeur);
+    }
+    // Fallback pour le débogage
+    else if (typeof window.onModifierOuverture === 'function') {
+      window.onModifierOuverture(id, champ, valeur);
+    }
+  };
+  
+  // NOUVEAU: Utilisation d'useEffect pour ajouter les écouteurs d'événements
+  useEffect(() => {
+    const handleGlobalMouseMove = (e) => handleMouseMove(e);
+    const handleGlobalMouseUp = () => handleMouseUp();
+    
+    if (isDragging) {
+      window.addEventListener('mousemove', handleGlobalMouseMove);
+      window.addEventListener('mouseup', handleGlobalMouseUp);
+    }
+    
+    // Nettoyer les écouteurs d'événements lors du démontage
+    return () => {
+      window.removeEventListener('mousemove', handleGlobalMouseMove);
+      window.removeEventListener('mouseup', handleGlobalMouseUp);
+    };
+  }, [isDragging, ouvertureSelectionneeId, zoom, dragStartPos]);
 
   // Génération des éléments de visualisation
   const plaques = resultat || [];
@@ -97,35 +168,35 @@ function MurVisualisation({
         >
           {/* Plaques */}
           {plaques.map((plaque, index) => (
-  <div
-    key={`plaque-${index}`}
-    className="plaque"
-    style={{
-      left: plaque.x * zoom,
-      top: plaque.y * zoom,
-      width: plaque.largeur * zoom,
-      height: plaque.hauteur * zoom,
-    }}
-    onMouseOver={(e) => handleMouseOver(e, `Plaque #${index+1}: ${plaque.largeur}×${plaque.hauteur}cm (${plaque.orientation})`)}
-    onMouseOut={handleMouseOut}
-  >
-    #{index+1}
-    
-    {/* Afficher les découpes dans les plaques */}
-    {plaque.decoupes && plaque.decoupes.map((decoupe, decoupeIndex) => (
-      <div
-        key={`decoupe-${index}-${decoupeIndex}`}
-        className={`decoupe ${decoupe.type}`}
-        style={{
-          left: decoupe.x * zoom,
-          top: decoupe.y * zoom,
-          width: decoupe.largeur * zoom,
-          height: decoupe.hauteur * zoom,
-        }}
-      />
-    ))}
-  </div>
-))}
+            <div
+              key={`plaque-${index}`}
+              className="plaque"
+              style={{
+                left: plaque.x * zoom,
+                top: plaque.y * zoom,
+                width: plaque.largeur * zoom,
+                height: plaque.hauteur * zoom,
+              }}
+              onMouseOver={(e) => handleMouseOver(e, `Plaque #${index+1}: ${plaque.largeur}×${plaque.hauteur}cm (${plaque.orientation})`)}
+              onMouseOut={handleMouseOut}
+            >
+              #{index+1}
+              
+              {/* Afficher les découpes dans les plaques */}
+              {plaque.decoupes && plaque.decoupes.map((decoupe, decoupeIndex) => (
+                <div
+                  key={`decoupe-${index}-${decoupeIndex}`}
+                  className={`decoupe ${decoupe.type}`}
+                  style={{
+                    left: decoupe.x * zoom,
+                    top: decoupe.y * zoom,
+                    width: decoupe.largeur * zoom,
+                    height: decoupe.hauteur * zoom,
+                  }}
+                />
+              ))}
+            </div>
+          ))}
 
           {/* Ouvertures */}
           {ouvertures.map((ouverture) => (
@@ -137,6 +208,7 @@ function MurVisualisation({
                 top: ouverture.y * zoom,
                 width: ouverture.largeur * zoom,
                 height: ouverture.hauteur * zoom,
+                cursor: 'move'
               }}
               onMouseDown={(e) => handleOuvertureMouseDown(e, ouverture.id)}
               onMouseOver={(e) => handleMouseOver(e, `${ouverture.type}: ${ouverture.largeur}×${ouverture.hauteur}cm`)}
