@@ -1,0 +1,226 @@
+@import './variables.css';
+
+/* Formulaires et inputs */
+.form-group {
+  margin-bottom: 1.25rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.form-control {
+  width: 100%;
+  padding: 0.75rem;
+  font-size: 1rem;
+  border: 1px solid #ddd;
+  border-radius: var(--border-radius);
+  transition: border-color 0.2s;
+}
+
+.form-control:focus {
+  border-color: var(--primary-color);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(58, 134, 255, 0.1);
+}
+
+.input-group {
+  display: flex;
+  align-items: center;
+}
+
+.input-group .form-control {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.input-group-append {
+  display: flex;
+  align-items: center;
+  background-color: #f4f4f4;
+  border: 1px solid #ddd;
+  border-left: none;
+  padding: 0 0.75rem;
+  border-top-right-radius: var(--border-radius);
+  border-bottom-right-radius: var(--border-radius);
+  color: #666;
+}
+
+/* Boutons */
+.btn {
+  display: inline-block;
+  font-weight: 500;
+  text-align: center;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+}
+
+.btn-primary {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: #2a75ef;
+}
+
+.btn-secondary {
+  background-color: #e9ecef;
+  color: var(--dark-color);
+}
+
+.btn-secondary:hover {
+  background-color: #dde2e6;
+}
+
+.btn-success {
+  background-color: var(--success-color);
+  color: white;
+}
+
+.btn-success:hover {
+  background-color: #05c090;
+}
+
+.btn-danger {
+  background-color: var(--danger-color);
+  color: white;
+}
+
+.btn-danger:hover {
+  background-color: #e13864;
+}
+
+.btn-sm {
+  padding: 0.4rem 0.8rem;
+  font-size: 0.875rem;
+}
+
+/* Onglets pour les murs */
+.tabs {
+  display: flex;
+  border-bottom: 1px solid #ddd;
+  margin-bottom: 1.5rem;
+}
+
+.tab {
+  padding: 0.75rem 1.25rem;
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  transition: all 0.2s;
+  font-weight: 500;
+}
+
+.tab.active {
+  border-bottom-color: var(--primary-color);
+  color: var(--primary-color);
+}
+
+.tab:hover:not(.active) {
+  border-bottom-color: #ddd;
+}
+
+.tab-close {
+  margin-left: 0.5rem;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.tab:hover .tab-close {
+  opacity: 1;
+}
+
+/* Style pour les éléments d'ouverture dans le panneau latéral */
+.ouverture-item {
+  background-color: white;
+  border: 1px solid #eee;
+  border-radius: var(--border-radius);
+  margin-bottom: 0.75rem;
+  overflow: hidden;
+  transition: all 0.2s;
+}
+
+.ouverture-item.active {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(58, 134, 255, 0.1);
+}
+
+.ouverture-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+}
+
+.ouverture-type {
+  font-weight: 600;
+  color: var(--dark-color);
+}
+
+.ouverture-dimensions {
+  color: #666;
+  font-size: 0.875rem;
+}
+
+.btn-icon {
+  background: none;
+  border: none;
+  color: #999;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.btn-icon:hover {
+  background-color: #f4f4f4;
+  color: var(--danger-color);
+}
+
+.ouverture-details {
+  padding: 0.75rem 1rem;
+  background-color: #f9f9f9;
+  border-top: 1px solid #eee;
+}
+
+.form-row {
+  display: flex;
+  margin: 0 -0.5rem 0.75rem;
+}
+
+.form-row .form-group {
+  padding: 0 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.form-group.half {
+  width: 50%;
+}
+
+/* Boutons d'action */
+.action-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.form-control.is-invalid {
+    border-color: var(--danger-color);
+  }
+  
+  .invalid-feedback {
+    color: var(--danger-color);
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+  }
