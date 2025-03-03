@@ -254,3 +254,220 @@
     border-radius: 2px;
     white-space: nowrap;
   }
+
+  /* Ajouter ce CSS à votre fichier src/styles/visualisation.css */
+
+/* Vue détaillée d'une plaque */
+.detail-view-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+.detail-view-container {
+  background-color: white;
+  border-radius: var(--border-radius);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  width: 100%;
+  max-width: 1000px;
+  max-height: 90vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.detail-view-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #eee;
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.detail-view-header h3 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.detail-view-header .btn-icon {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.detail-view-header .btn-icon:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.detail-view-content {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.detail-view-info {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+.detail-info-section {
+  background-color: #f8f9fa;
+  border-radius: var(--border-radius);
+  padding: 1rem;
+}
+
+.detail-info-section h4 {
+  margin-top: 0;
+  color: var(--primary-color);
+  font-size: 1rem;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.detail-info-section p {
+  margin: 0.5rem 0;
+  font-size: 0.9rem;
+}
+
+.detail-info-section ul {
+  margin: 0;
+  padding: 0 0 0 1.5rem;
+}
+
+.detail-info-section li {
+  margin-bottom: 0.75rem;
+}
+
+.detail-info-section li p {
+  margin: 0.25rem 0;
+}
+
+.detail-view-canvas-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.detail-view-canvas {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  background-color: #f8f9fa;
+  border-radius: var(--border-radius);
+  padding: 1.5rem;
+}
+
+.detail-plaque-originale,
+.detail-plaque-finale {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.detail-plaque-label {
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  color: var(--dark-color);
+}
+
+.detail-view-instructions {
+  background-color: #f8f9fa;
+  border-radius: var(--border-radius);
+  padding: 1.5rem;
+}
+
+.detail-view-instructions h4 {
+  margin-top: 0;
+  color: var(--primary-color);
+  margin-bottom: 1rem;
+}
+
+.instruction-step {
+  display: flex;
+  margin-bottom: 1rem;
+  align-items: flex-start;
+}
+
+.step-number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: var(--primary-color);
+  color: white;
+  font-weight: bold;
+  margin-right: 0.75rem;
+  flex-shrink: 0;
+}
+
+.instruction-step p {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.detail-view-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+/* Styles d'impression */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  
+  .detail-view-container,
+  .detail-view-container * {
+    visibility: visible;
+  }
+  
+  .detail-view-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    box-shadow: none;
+  }
+  
+  .detail-view-actions,
+  .detail-view-header .btn-icon {
+    display: none;
+  }
+}
+
+/* Surcharges pour améliorer l'apparence des plaques */
+.plaque {
+  transition: all 0.2s;
+}
+
+.plaque:hover {
+  box-shadow: 0 0 0 2px var(--primary-color);
+  z-index: 50;
+  transform: scale(1.01);
+}
