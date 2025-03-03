@@ -3,6 +3,15 @@ import React from 'react';
 function ResultatsGlobaux({ resultat, murs }) {
   if (!resultat) return null;
   
+  // Fonction pour calculer le nombre réel de plaques par mur
+  const calculerPlaquesParMur = (mur) => {
+    const surfacePlaqueTotale = resultat.surfaceTotale / resultat.nbPlaques;
+    const surfaceMur = mur.largeur * mur.hauteur;
+    const surfaceOuvertures = mur.ouvertures.reduce((acc, o) => acc + (o.largeur * o.hauteur), 0);
+    const surfaceUtileMur = surfaceMur - surfaceOuvertures;
+    return Math.ceil(surfaceUtileMur / surfacePlaqueTotale);
+  };
+  
   return (
     <div className="card">
       <div className="card-header">
@@ -35,13 +44,29 @@ function ResultatsGlobaux({ resultat, murs }) {
         <h3>Détail par mur</h3>
         
         {murs.map(mur => {
-          const plaquesParMur = resultat.plaques.filter(p => p.murId === mur.id);
+          const nbPlaquesMur = calculerPlaquesParMur(mur);
+          const surfaceMur = mur.largeur * mur.hauteur;
+          const surfaceOuvertures = mur.ouvertures.reduce((acc, o) => acc + (o.largeur * o.hauteur), 0);
+          const surfaceUtileMur = surfaceMur - surfaceOuvertures;
+          
           return (
             <div key={mur.id} className="mur-detail">
               <div className="mur-detail-header">
                 <h4>{mur.nom}</h4>
                 <div className="mur-detail-stats">
-                  <span>{plaquesParMur.length} plaques</span>
+                  <span>{nbPlaquesMur} plaques nécessaires</span>
+                </div>
+              </div>
+              
+              <div className="mur-detail-infos">
+                <div className="mur-detail-info">
+                  <span>Dimensions: {mur.largeur} × {mur.hauteur} cm</span>
+                </div>
+                <div className="mur-detail-info">
+                  <span>Surface utile: {surfaceUtileMur.toLocaleString()} cm²</span>
+                </div>
+                <div className="mur-detail-info">
+                  <span>Ouvertures: {mur.ouvertures.length}</span>
                 </div>
               </div>
             </div>
