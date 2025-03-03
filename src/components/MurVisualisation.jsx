@@ -19,134 +19,19 @@ function MurVisualisation({
   const [tooltipContent, setTooltipContent] = useState('');
   const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
 
-  // Générer la disposition des plaques avec des dimensions réelles
-  const genererDispositionPratique = () => {
+  // Utiliser directement les plaques calculées par l'algorithme d'optimisation
+  // au lieu de recalculer la disposition
+  const getPlaques = () => {
     if (!resultat || !mur) return [];
     
-    // Calculer la surface utile de ce mur (surface totale moins les ouvertures)
-    const surfaceMur = mur.largeur * mur.hauteur;
-    const surfaceOuvertures = mur.ouvertures.reduce((acc, o) => acc + (o.largeur * o.hauteur), 0);
-    const surfaceUtile = surfaceMur - surfaceOuvertures;
+    // Filtrer pour n'obtenir que les plaques du mur actuel
+    const plaques = resultat.filter(plaque => plaque.murId === mur.id);
     
-    // Calculer le nombre réel de plaques nécessaires pour ce mur
-    const surfacePlaque = dimensionsPlaque.largeur * dimensionsPlaque.hauteur;
-    const nbPlaquesNecessaires = Math.ceil(surfaceUtile / surfacePlaque);
-    
-    // Créer une disposition pratique qui respecte les dimensions réelles
-    const plaques = [];
-    
-    // Déterminer l'orientation optimale pour les plaques
-    const placementHorizontal = mur.largeur > mur.hauteur;
-    const plaqueLargeur = placementHorizontal ? dimensionsPlaque.largeur : dimensionsPlaque.hauteur;
-    const plaqueHauteur = placementHorizontal ? dimensionsPlaque.hauteur : dimensionsPlaque.largeur;
-    
-    // Nombre de plaques par rangée et colonne
-    const plaquesParRangee = Math.ceil(mur.largeur / plaqueLargeur);
-    const plaquesParColonne = Math.ceil(mur.hauteur / plaqueHauteur);
-    
-    // Générer la grille de plaques
-    let plaqueIndex = 0;
-    
-    for (let r = 0; r < plaquesParColonne && plaqueIndex < nbPlaquesNecessaires; r++) {
-      const hauteurPlaqueCourante = Math.min(plaqueHauteur, mur.hauteur - r * plaqueHauteur);
-      
-      for (let c = 0; c < plaquesParRangee && plaqueIndex < nbPlaquesNecessaires; c++) {
-        const largeurPlaqueCourante = Math.min(plaqueLargeur, mur.largeur - c * plaqueLargeur);
-        
-        // Vérifier si cette zone a besoin d'être couverte (contient au moins une cellule à couvrir)
-        const zoneACouvrir = verifierZoneACouvrir(
-          c * plaqueLargeur, 
-          r * plaqueHauteur, 
-          largeurPlaqueCourante, 
-          hauteurPlaqueCourante,
-          mur.ouvertures
-        );
-        
-        if (zoneACouvrir) {
-          plaques.push({
-            id: `plaque-${plaqueIndex + 1}`,
-            x: c * plaqueLargeur,
-            y: r * plaqueHauteur,
-            largeur: largeurPlaqueCourante,
-            hauteur: hauteurPlaqueCourante,
-            orientation: placementHorizontal ? 'normal' : 'rotated',
-            decoupes: [],
-            ajustementNecessaire: largeurPlaqueCourante < plaqueLargeur || hauteurPlaqueCourante < plaqueHauteur
-          });
-          
-          plaqueIndex++;
-        }
-      }
-    }
-    
-    // Ajouter les découpes pour chaque plaque
-    plaques.forEach(plaque => {
-      plaque.decoupes = [];
-      
-      mur.ouvertures.forEach(ouverture => {
-        // Vérifier si l'ouverture chevauche la plaque
-        if (chevauchement(plaque, ouverture)) {
-          const decoupe = calculerDecoupe(plaque, ouverture);
-          plaque.decoupes.push({
-            ...decoupe,
-            type: ouverture.type,
-            xLocal: decoupe.x - plaque.x,
-            yLocal: decoupe.y - plaque.y
-          });
-        }
-      });
-    });
-    
-    return plaques;
-  };
-  
-  // Vérifier si une zone a besoin d'être couverte (n'est pas entièrement une ouverture)
-  const verifierZoneACouvrir = (x, y, largeur, hauteur, ouvertures) => {
-    // Surface totale de la zone
-    const surfaceZone = largeur * hauteur;
-    
-    // Calculer la surface couverte par les ouvertures
-    let surfaceOuvertures = 0;
-    
-    ouvertures.forEach(ouverture => {
-      // Calculer l'intersection entre la zone et l'ouverture
-      const xIntersect = Math.max(x, ouverture.x);
-      const yIntersect = Math.max(y, ouverture.y);
-      const largeurIntersect = Math.min(x + largeur, ouverture.x + ouverture.largeur) - xIntersect;
-      const hauteurIntersect = Math.min(y + hauteur, ouverture.y + ouverture.hauteur) - yIntersect;
-      
-      if (largeurIntersect > 0 && hauteurIntersect > 0) {
-        surfaceOuvertures += largeurIntersect * hauteurIntersect;
-      }
-    });
-    
-    // La zone a besoin d'être couverte si elle n'est pas entièrement une ouverture
-    return surfaceOuvertures < surfaceZone;
-  };
-  
-  // Fonction pour vérifier si deux rectangles se chevauchent
-  const chevauchement = (rect1, rect2) => {
-    return !(
-      rect1.x + rect1.largeur <= rect2.x ||
-      rect2.x + rect2.largeur <= rect1.x ||
-      rect1.y + rect1.hauteur <= rect2.y ||
-      rect2.y + rect2.hauteur <= rect1.y
-    );
-  };
-  
-  // Fonction pour calculer l'intersection entre une plaque et une ouverture
-  const calculerDecoupe = (plaque, ouverture) => {
-    const x1 = Math.max(plaque.x, ouverture.x);
-    const y1 = Math.max(plaque.y, ouverture.y);
-    const x2 = Math.min(plaque.x + plaque.largeur, ouverture.x + ouverture.largeur);
-    const y2 = Math.min(plaque.y + plaque.hauteur, ouverture.y + ouverture.hauteur);
-    
-    return {
-      x: x1,
-      y: y1,
-      largeur: x2 - x1,
-      hauteur: y2 - y1
-    };
+    // Ajouter un identifiant unique pour chaque plaque si nécessaire
+    return plaques.map((plaque, index) => ({
+      ...plaque,
+      id: plaque.id || `plaque-${index + 1}`
+    }));
   };
 
   // Gestionnaire de zoom
@@ -188,8 +73,8 @@ function MurVisualisation({
     }
   };
 
-  // Génération des éléments de visualisation
-  const plaques = resultat ? genererDispositionPratique() : [];
+  // Utiliser directement les plaques calculées par l'algorithme d'optimisation
+  const plaques = getPlaques();
   const ouvertures = mur.ouvertures || [];
 
   // Calcul de la surface utile et du nombre de plaques nécessaires pour affichage
@@ -257,10 +142,10 @@ function MurVisualisation({
                   tooltipText += `\nPlaque originale: ${plaque.orientation === 'normal' ? dimensionsPlaque.largeur : dimensionsPlaque.hauteur}×${plaque.orientation === 'normal' ? dimensionsPlaque.hauteur : dimensionsPlaque.largeur} cm`;
                 }
                 
-                if (plaque.decoupes.length > 0) {
+                if (plaque.decoupes && plaque.decoupes.length > 0) {
                   tooltipText += '\nDécoupes nécessaires:';
                   plaque.decoupes.forEach(d => {
-                    tooltipText += `\n- ${d.type}: position (${d.xLocal},${d.yLocal}) cm, taille ${d.largeur}×${d.hauteur} cm`;
+                    tooltipText += `\n- ${d.type || 'découpe'}: position (${d.xLocal || 0},${d.yLocal || 0}) cm, taille ${d.largeur}×${d.hauteur} cm`;
                   });
                 } else {
                   tooltipText += '\nAucune découpe pour ouverture n\'est nécessaire';
@@ -284,18 +169,18 @@ function MurVisualisation({
               {plaque.decoupes && plaque.decoupes.map((decoupe, decoupeIndex) => (
                 <div
                   key={`decoupe-${index}-${decoupeIndex}`}
-                  className={`decoupe ${decoupe.type}`}
+                  className={`decoupe ${decoupe.type || 'autre'}`}
                   style={{
-                    left: (decoupe.x - plaque.x) * zoom,
-                    top: (decoupe.y - plaque.y) * zoom,
+                    left: (decoupe.xLocal || decoupe.x - plaque.x) * zoom,
+                    top: (decoupe.yLocal || decoupe.y - plaque.y) * zoom,
                     width: decoupe.largeur * zoom,
                     height: decoupe.hauteur * zoom,
                   }}
                 >
                   {/* Dimensions de la découpe */}
                   <div className="decoupe-cotes">
-                    <div className="decoupe-x">{decoupe.xLocal} cm</div>
-                    <div className="decoupe-y">{decoupe.yLocal} cm</div>
+                    <div className="decoupe-x">{decoupe.xLocal || (decoupe.x - plaque.x)} cm</div>
+                    <div className="decoupe-y">{decoupe.yLocal || (decoupe.y - plaque.y)} cm</div>
                     <div className="decoupe-dimension">{decoupe.largeur}×{decoupe.hauteur} cm</div>
                   </div>
                 </div>
