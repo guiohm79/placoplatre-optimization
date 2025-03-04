@@ -6,7 +6,7 @@ import MurVisualisation from './MurVisualisation';
 import { optimiserTousMurs } from '../utils/optimisation';
 import ResultatsGlobaux from './ResultatsGlobaux';
 import { validerDimensionsMur, validerOuverture } from '../utils/validators';
-import { Calculator, Download } from 'lucide-react';
+import { Calculator, Download, Settings, Sun, Moon } from 'lucide-react';
 import '../styles/main.css';
 import '../styles/components.css';
 
@@ -41,6 +41,9 @@ function App() {
   // Ajoutez un état pour les erreurs
   const [erreurs, setErreurs] = useState({});
 
+  // État pour le thème (clair/sombre)
+  const [darkMode, setDarkMode] = useState(false);
+
   // État pour le mur actuellement sélectionné
   const [murSelectionneeId, setMurSelectionneeId] = useState(1);
   
@@ -52,6 +55,15 @@ function App() {
   
   // État pour le résultat de l'optimisation
   const [resultat, setResultat] = useState(null);
+  
+  // Effet pour appliquer le thème
+  useEffect(() => {
+    if (darkMode) {
+      document.body.classList.add('dark-mode');
+    } else {
+      document.body.classList.remove('dark-mode');
+    }
+  }, [darkMode]);
   
   // Exposer la fonction modifierOuverture pour le débogage
   useEffect(() => {
@@ -232,9 +244,14 @@ function App() {
     alert("Fonctionnalité d'export en PDF à implémenter");
   };
   
+  // Basculer entre mode clair/sombre
+  const toggleDarkMode = () => {
+    setDarkMode(!darkMode);
+  };
+  
   return (
-    <div className="container">
-      <Header />
+    <div className={`app-container ${darkMode ? 'dark-mode' : ''}`}>
+      <Header darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
       
       <div className="main-layout">
         <div className="left-panel">

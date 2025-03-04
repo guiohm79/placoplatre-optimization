@@ -1,67 +1,191 @@
 @import './variables.css';
 
-body {
-  font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
-  color: var(--dark-color);
-  background-color: #498bee86;
+* {
+  box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
 
+body {
+  font-family: var(--font-family);
+  color: var(--dark-color);
+  background-color: var(--gray-100);
+  margin: 0;
+  padding: 0;
+  line-height: var(--line-height);
+  transition: background-color var(--transition-speed), color var(--transition-speed);
+}
+
+.dark-mode body {
+  background-color: #1a1d21;
+  color: var(--gray-100);
+}
+
 .container {
-  max-width: 1200px;
+  max-width: var(--container-width);
   margin: 0 auto;
-  padding: 2rem;
+  padding: var(--spacing-xl);
+  transition: all var(--transition-speed);
 }
 
 /* Header */
 .header {
-  background-color: white;
-  padding: 1rem 2rem;
+  background-color: var(--white);
+  padding: var(--spacing-md) var(--spacing-xl);
   box-shadow: var(--shadow);
-  margin-bottom: 2rem;
+  margin-bottom: var(--spacing-xl);
+  transition: all var(--transition-speed);
+}
+
+.dark-mode .header {
+  background-color: #2c3035;
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: var(--container-width);
+  margin: 0 auto;
+}
+
+.logo-container {
+  display: flex;
+  align-items: center;
+}
+
+.logo {
+  width: 2.5rem;
+  height: 2.5rem;
+  background-color: var(--primary-color);
+  color: white;
+  border-radius: var(--border-radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-large);
+  margin-right: var(--spacing-md);
 }
 
 .header h1 {
   color: var(--primary-color);
   margin: 0;
-  font-weight: 600;
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-xlarge);
+}
+
+.btn-theme {
+  background: none;
+  border: none;
+  color: var(--gray-600);
+  cursor: pointer;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-speed);
+}
+
+.btn-theme:hover {
+  background-color: var(--gray-200);
+  color: var(--dark-color);
+}
+
+.dark-mode .btn-theme {
+  color: var(--gray-400);
+}
+
+.dark-mode .btn-theme:hover {
+  background-color: var(--gray-700);
+  color: var(--light-color);
 }
 
 /* Layout principal */
+.app-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  transition: all var(--transition-speed);
+}
+
 .main-layout {
   display: grid;
   grid-template-columns: 1fr 1.5fr;
-  gap: 2rem;
+  gap: var(--spacing-xl);
+  max-width: var(--container-width);
+  margin: 0 auto;
+  padding: 0 var(--spacing-xl) var(--spacing-xl);
 }
 
-@media (max-width: 768px) {
+@media (max-width: 992px) {
   .main-layout {
     grid-template-columns: 1fr;
+    gap: var(--spacing-lg);
   }
 }
 
 /* Card design pour les sections */
 .card {
-  background-color: white;
-  border-radius: var(--border-radius);
+  background-color: var(--white);
+  border-radius: var(--card-border-radius);
   box-shadow: var(--shadow);
-  padding: 1.5rem;
-  margin-bottom: 1.5rem;
+  padding: var(--spacing-lg);
+  margin-bottom: var(--spacing-lg);
+  transition: all var(--transition-speed);
+}
+
+.dark-mode .card {
+  background-color: #2c3035;
 }
 
 .card-header {
-  border-bottom: 1px solid #eee;
-  padding-bottom: 1rem;
-  margin-bottom: 1.5rem;
+  padding-bottom: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
   display: flex;
   justify-content: space-between;
   align-items: center;
+  border-bottom: 1px solid var(--gray-200);
+}
+
+.dark-mode .card-header {
+  border-bottom-color: var(--gray-700);
 }
 
 .card-header h2 {
   margin: 0;
-  font-size: 1.25rem;
-  font-weight: 600;
+  font-size: var(--font-size-large);
+  font-weight: var(--font-weight-bold);
   color: var(--primary-color);
+}
+
+.help-text {
+  background-color: var(--primary-light);
+  border-radius: var(--border-radius);
+  padding: var(--spacing-sm) var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+  font-size: var(--font-size-small);
+  color: var(--primary-color);
+  border-left: 3px solid var(--primary-color);
+}
+
+.dark-mode .help-text {
+  background-color: var(--primary-light);
+}
+
+.tab-buttons {
+  display: flex;
+  gap: var(--spacing-xs);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.card {
+  animation: fadeIn 0.3s ease-in-out;
 }
