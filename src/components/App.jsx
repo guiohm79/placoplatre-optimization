@@ -74,6 +74,15 @@ function App() {
       window.onModifierOuverture = undefined;
     };
   }, []);
+
+  // Fonctions de conversion pour l'origine en bas à gauche
+  const convertirYVersHaut = (y, hauteurMur, hauteurElement) => {
+    return hauteurMur - y - hauteurElement;
+  };
+
+  const convertirYVersBas = (y, hauteurMur, hauteurElement) => {
+    return hauteurMur - y - hauteurElement;
+  };
   
   // Pour ajouter un nouveau mur
   const ajouterMur = () => {
@@ -135,7 +144,7 @@ function App() {
     const nouvelleOuverture = {
       id: Date.now(),
       x: 10,
-      y: 10,
+      y: 10, // Maintenant c'est depuis le bas !
       largeur: 60,
       hauteur: 60,
       type: 'autre'
@@ -234,9 +243,58 @@ function App() {
       return;
     }
     
-    // Utiliser l'algorithme réel d'optimisation
-    const resultatOptimisation = optimiserTousMurs(murs, plaqueDimensions);
-    setResultat(resultatOptimisation);
+    // NOUVEAU : Convertir les coordonnées Y des ouvertures (du bas vers le haut)
+    const mursConvertisPourOptimisation = murs.map(mur => {
+      return {
+        ...mur,
+        ouvertures: mur.ouvertures.map(ouverture => {
+          // Conversion de Y (du bas vers le haut pour l'algo)
+          const yConverti = mur.hauteur - ouverture.y - ouverture.hauteur;
+          return { ...ouverture, y: yConverti };
+        })
+      };
+    });
+    
+    // Utiliser l'algorithme réel d'optimisation avec les coords converties
+    const resultatOptimisation = optimiserTousMurs(mursConvertisPourOptimisation, plaqueDimensions);
+    
+    // NOUVEAU : Reconvertir les coordonnées Y des plaques dans le résultat (du haut vers le bas)
+    const resultatReconverti = {
+      ...resultatOptimisation,
+      plaques: resultatOptimisation.plaques.map(plaque => {
+        const murCorrespondant = murs.find(m => m.id === plaque.murId);
+        if (!murCorrespondant) return plaque;
+        
+        // Reconversion de Y (du haut vers le bas pour l'affichage)
+        const yReconverti = murCorrespondant.hauteur - plaque.y - plaque.hauteur;
+        
+        // Aussi convertir les coordonnées des découpes si nécessaire
+        let decoupesReconverties = plaque.decoupes;
+        if (plaque.decoupes && plaque.decoupes.length > 0) {
+          decoupesReconverties = plaque.decoupes.map(decoupe => {
+            // Si les coordonnées sont relatives à la plaque (yLocal) on les convertit
+            if (decoupe.yLocal !== undefined) {
+              const yLocalReconverti = plaque.hauteur - decoupe.yLocal - decoupe.hauteur;
+              return { ...decoupe, yLocal: yLocalReconverti };
+            }
+            // Si les coordonnées sont absolues, on les convertit aussi
+            else if (decoupe.y !== undefined) {
+              const yReconverti = murCorrespondant.hauteur - decoupe.y - decoupe.hauteur;
+              return { ...decoupe, y: yReconverti };
+            }
+            return decoupe;
+          });
+        }
+        
+        return { 
+          ...plaque, 
+          y: yReconverti, 
+          decoupes: decoupesReconverties 
+        };
+      })
+    };
+    
+    setResultat(resultatReconverti);
   };
   
   // Fonction provisoire pour exporter en PDF

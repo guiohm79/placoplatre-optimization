@@ -37,7 +37,7 @@ npm start
 
 ### Fonctionnalités à implémenter
 - [ ] Export en PDF fonctionnel (actuellement simulé)
-- [ ] Modifier l'origine, la mettre en bas a gauche (actuellement en haut a gauche)
+- [X] Modifier l'origine, la mettre en bas a gauche (actuellement en haut a gauche)
 - [ ] Sauvegarde/chargement de projets
 - [ ] Calcul du coût total en fonction du prix des plaques
 - [ ] Ajouter un historique des modifications (undo/redo)

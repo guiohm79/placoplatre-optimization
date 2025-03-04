@@ -24,6 +24,16 @@ function MurVisualisation({
   const [selectedPlaque, setSelectedPlaque] = useState(null);
   const [showDetailView, setShowDetailView] = useState(false);
 
+  // Fonctions de conversion pour l'axe Y (origine en bas à gauche)
+  const convertirYVersBasGauche = (y, hauteurElement) => {
+    return mur.hauteur - y - hauteurElement;
+  };
+
+  // Fonction inverse pour reconvertir (du haut vers le bas)
+  const convertirDepuisBasGauche = (yAffichage, hauteurElement) => {
+    return mur.hauteur - yAffichage - hauteurElement;
+  };
+
   // Utiliser directement les plaques calculées par l'algorithme d'optimisation
   // au lieu de recalculer la disposition
   const getPlaques = () => {
@@ -60,8 +70,6 @@ function MurVisualisation({
     setShowTooltip(false);
   };
 
-  // Nouveau ! Gestionnaires pour le drag & drop des ouvertures
-
   // Gestionnaire de déplacement d'ouverture - démarrage du drag
   const handleOuvertureMouseDown = (e, ouvertureId) => {
     e.preventDefault();
@@ -76,14 +84,17 @@ function MurVisualisation({
       onOuvertureSelect(ouvertureId);
       
       // On enregistre la position de départ du drag
+      // MODIFIÉ: Utiliser le Y converti pour l'affichage
+      const yAffiche = convertirYVersBasGauche(ouverture.y, ouverture.hauteur);
+      
       setDragStartPos({
         x: e.clientX - rect.left - ouverture.x * zoom,
-        y: e.clientY - rect.top - ouverture.y * zoom
+        y: e.clientY - rect.top - yAffiche * zoom
       });
     }
   };
   
-  // Nouveau ! Gestionnaire de déplacement pendant le drag
+  // Gestionnaire de déplacement pendant le drag (modifié pour l'axe Y inversé)
   const handleMouseMove = (e) => {
     if (!isDragging || !ouvertureSelectionneeId) return;
     
@@ -94,19 +105,22 @@ function MurVisualisation({
     const mouseX = e.clientX - rect.left;
     const mouseY = e.clientY - rect.top;
     
-    // Calculer la nouvelle position de l'ouverture (en tenant compte du zoom)
+    // Calculer la nouvelle position X (inchangée)
     const newX = Math.max(0, Math.round((mouseX - dragStartPos.x) / zoom));
-    const newY = Math.max(0, Math.round((mouseY - dragStartPos.y) / zoom));
     
-    // Récupérer l'ouverture sélectionnée
+    // Étape 1: Calculer la position apparente Y (en coordonnées d'affichage)
+    const yAffichage = Math.round((mouseY - dragStartPos.y) / zoom);
+    
+    // Étape 2: Reconvertir en coordonnées logiques (origine en bas)
     const ouverture = mur.ouvertures.find(o => o.id === ouvertureSelectionneeId);
+    const newY = convertirDepuisBasGauche(yAffichage, ouverture.hauteur);
     
     // S'assurer que l'ouverture reste dans les limites du mur
     const maxX = mur.largeur - ouverture.largeur;
     const maxY = mur.hauteur - ouverture.hauteur;
     
-    const clampedX = Math.min(maxX, newX);
-    const clampedY = Math.min(maxY, newY);
+    const clampedX = Math.min(maxX, Math.max(0, newX));
+    const clampedY = Math.min(maxY, Math.max(0, newY));
     
     // Mettre à jour les coordonnées de l'ouverture si elles ont changé
     if (ouverture.x !== clampedX) {
@@ -118,14 +132,14 @@ function MurVisualisation({
     }
   };
   
-  // Nouveau ! Gestionnaire de fin de drag
+  // Gestionnaire de fin de drag
   const handleMouseUp = () => {
     if (isDragging) {
       setIsDragging(false);
     }
   };
   
-  // Nouveau ! Sortie du curseur de la zone de visualisation
+  // Sortie du curseur de la zone de visualisation
   const handleMouseLeave = () => {
     if (isDragging) {
       setIsDragging(false);
@@ -133,7 +147,7 @@ function MurVisualisation({
     setShowTooltip(false);
   };
   
-  // Nouveau ! Ajouter et retirer les écouteurs d'événements pour le drag
+  // Ajouter et retirer les écouteurs d'événements pour le drag
   useEffect(() => {
     // Si une ouverture est en train d'être déplacée, ajouter les écouteurs
     if (isDragging) {
@@ -208,18 +222,19 @@ function MurVisualisation({
             width: mur.largeur * zoom,
             height: mur.hauteur * zoom,
             transform: `translate(${pan.x}px, ${pan.y}px)`,
-            cursor: isDragging ? 'grabbing' : 'default' // Nouveau ! Changer le curseur pendant le drag
+            cursor: isDragging ? 'grabbing' : 'default'
           }}
-          onMouseLeave={handleMouseLeave} // Nouveau ! Gérer la sortie du curseur
+          onMouseLeave={handleMouseLeave}
         >
-          {/* Plaques */}
+          {/* Plaques - MODIFIÉ pour origine en bas à gauche */}
           {plaques.map((plaque, index) => (
             <div
               key={`plaque-${index}`}
               className={`plaque ${plaque.ajustementNecessaire ? 'ajustement' : ''}`}
               style={{
                 left: plaque.x * zoom,
-                top: plaque.y * zoom,
+                // Conversion pour afficher avec origine en bas à gauche
+                top: convertirYVersBasGauche(plaque.y, plaque.hauteur) * zoom,
                 width: plaque.largeur * zoom,
                 height: plaque.hauteur * zoom,
                 cursor: 'pointer'
@@ -265,6 +280,7 @@ function MurVisualisation({
                   className={`decoupe ${decoupe.type || 'autre'}`}
                   style={{
                     left: (decoupe.xLocal || decoupe.x - plaque.x) * zoom,
+                    // Conversion pour les découpes (relatives à la plaque)
                     top: (decoupe.yLocal || decoupe.y - plaque.y) * zoom,
                     width: decoupe.largeur * zoom,
                     height: decoupe.hauteur * zoom,
@@ -281,22 +297,23 @@ function MurVisualisation({
             </div>
           ))}
 
-          {/* Ouvertures */}
+          {/* Ouvertures - MODIFIÉ pour origine en bas à gauche */}
           {ouvertures.map((ouverture) => (
             <div
               key={`ouverture-${ouverture.id}`}
               className={`ouverture ${ouverture.type} ${ouvertureSelectionneeId === ouverture.id ? 'selected' : ''}`}
               style={{
                 left: ouverture.x * zoom,
-                top: ouverture.y * zoom,
+                // Conversion pour afficher avec origine en bas à gauche
+                top: convertirYVersBasGauche(ouverture.y, ouverture.hauteur) * zoom,
                 width: ouverture.largeur * zoom,
                 height: ouverture.hauteur * zoom,
-                cursor: isDragging && ouvertureSelectionneeId === ouverture.id ? 'grabbing' : 'grab', // Nouveau ! Curseur spécifique
-                opacity: isDragging && ouvertureSelectionneeId === ouverture.id ? 0.7 : 1, // Nouveau ! Effet visuel pendant le drag
-                zIndex: ouvertureSelectionneeId === ouverture.id ? 25 : 20, // Nouveau ! Mettre l'ouverture sélectionnée au-dessus
+                cursor: isDragging && ouvertureSelectionneeId === ouverture.id ? 'grabbing' : 'grab',
+                opacity: isDragging && ouvertureSelectionneeId === ouverture.id ? 0.7 : 1,
+                zIndex: ouvertureSelectionneeId === ouverture.id ? 25 : 20,
               }}
               onMouseDown={(e) => handleOuvertureMouseDown(e, ouverture.id)}
-              onMouseOver={(e) => handleMouseOver(e, `${ouverture.type}: ${ouverture.largeur}×${ouverture.hauteur}cm (position: ${ouverture.x}, ${ouverture.y})`)}
+              onMouseOver={(e) => handleMouseOver(e, `${ouverture.type}: ${ouverture.largeur}×${ouverture.hauteur}cm (position: ${ouverture.x}, ${ouverture.y} depuis le bas)`)}
               onMouseOut={handleMouseOut}
             >
               <span>{ouverture.type}</span>
@@ -340,7 +357,7 @@ function MurVisualisation({
                   <h4>Informations générales</h4>
                   <p><strong>Dimensions d'origine:</strong> {selectedPlaque.orientation === 'normal' ? dimensionsPlaque.largeur : dimensionsPlaque.hauteur} × {selectedPlaque.orientation === 'normal' ? dimensionsPlaque.hauteur : dimensionsPlaque.largeur} cm</p>
                   <p><strong>Dimensions finales:</strong> {selectedPlaque.largeur} × {selectedPlaque.hauteur} cm</p>
-                  <p><strong>Position sur le mur:</strong> ({selectedPlaque.x}, {selectedPlaque.y}) cm</p>
+                  <p><strong>Position sur le mur:</strong> ({selectedPlaque.x}, {selectedPlaque.y} depuis le bas) cm</p>
                   <p><strong>Type d'ajustement:</strong> {selectedPlaque.ajustementNecessaire ? "Découpe requise" : "Aucun ajustement nécessaire"}</p>
                   <p><strong>Orientation:</strong> {selectedPlaque.orientation === 'normal' ? "Horizontale" : "Verticale"}</p>
                 </div>
@@ -458,7 +475,7 @@ function MurVisualisation({
                     </svg>
                   </div>
                   
-                  {/* Dessin de la plaque finale avec découpes */}
+                  {/* Dessin de la plaque finale avec découpes - Pas besoin de modifier ici */}
                   <div className="detail-plaque-finale">
                     <div className="detail-plaque-label">Plaque avec découpes pour ouvertures</div>
                     <svg 
@@ -597,7 +614,7 @@ function MurVisualisation({
                   
                   <div className="instruction-step">
                     <span className="step-number">{selectedPlaque.ajustementNecessaire || selectedPlaque.decoupes?.length > 0 ? '4' : '2'}</span>
-                    <p>Installez la plaque à la position ({selectedPlaque.x}, {selectedPlaque.y}) cm sur le mur</p>
+                    <p>Installez la plaque à la position ({selectedPlaque.x}, {selectedPlaque.y} depuis le bas) cm sur le mur</p>
                   </div>
                 </div>
               </div>

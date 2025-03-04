@@ -1,5 +1,5 @@
 import React from 'react';
-import { X } from 'lucide-react';
+import { X, Info } from 'lucide-react';
 
 function OuvertureItem({ 
   ouverture, 
@@ -49,7 +49,7 @@ function OuvertureItem({
           
           <div className="form-row">
             <div className="form-group half">
-              <label>Position X</label>
+              <label>Position X (depuis la gauche)</label>
               <div className="input-group">
                 <input
                   type="number"
@@ -65,7 +65,7 @@ function OuvertureItem({
             </div>
             
             <div className="form-group half">
-              <label>Position Y</label>
+              <label>Position Y (depuis le bas)</label>
               <div className="input-group">
                 <input
                   type="number"
@@ -78,6 +78,11 @@ function OuvertureItem({
               {erreurs.y && (
                 <div className="invalid-feedback">{erreurs.y}</div>
               )}
+              <div className="form-helper">
+                <small className="text-muted">
+                  La position Y est mesurée à partir du bas du mur
+                </small>
+              </div>
             </div>
           </div>
           
