@@ -1,70 +1,102 @@
-# Getting Started with Create React App
+# Optimisation des découpes de placoplatre 🏗️
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+## Description du projet
 
-## Available Scripts
+Cette application web permet de calculer l'optimisation des découpes de plaques de placoplatre en fonction des dimensions des murs et des ouvertures (portes, fenêtres). Elle aide à minimiser les chutes et à visualiser le placement des plaques sur chaque mur.
 
-In the project directory, you can run:
+## Fonctionnalités
 
-### `npm start`
+L'application permet de :
+- Configurer les dimensions des plaques de placoplatre disponibles
+- Ajouter, modifier et supprimer des murs
+- Ajouter, modifier et supprimer des ouvertures (portes, fenêtres, etc.)
+- Calculer automatiquement l'optimisation des découpes
+- Visualiser le placement des plaques sur chaque mur
+- Afficher les détails de chaque plaque et les instructions de découpe
+- Consulter les statistiques globales (nombre de plaques, pourcentage de chutes, etc.)
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+## Installation et lancement
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+```bash
+# Installer les dépendances
+npm install
 
-### `npm test`
+# Lancer l'application en mode développement
+npm start
+```
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## Todo List 📋
 
-### `npm run build`
+### Améliorations de l'interface utilisateur
+- [ ] Ajouter un thème clair/sombre
+- [ ] Rendre l'interface responsive pour mobile et tablettes
+- [ ] Ajouter une page d'aide/tutoriel
+- [ ] Créer un logo pour l'application
+- [ ] Améliorer les transitions et animations
+- [ ] Ajouter des tooltips explicatifs sur les champs complexes
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### Fonctionnalités à implémenter
+- [ ] Export en PDF fonctionnel (actuellement simulé)
+- [ ] Sauvegarde/chargement de projets
+- [ ] Calcul du coût total en fonction du prix des plaques
+- [ ] Ajouter un historique des modifications (undo/redo)
+- [ ] Permettre l'import de plans depuis des fichiers CAD/DXF
+- [ ] Ajouter un mode d'édition collaboratif en temps réel
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+### Amélioration de l'algorithme d'optimisation
+- [ ] Optimiser la gestion des chutes réutilisables
+- [ ] Ajouter des contraintes de pose (joints décalés, etc.)
+- [ ] Permettre la rotation des plaques à 90° pour les découpes complexes
+- [ ] Intégrer des règles métier supplémentaires (espacement des joints, etc.)
+- [ ] Optimiser pour les grandes surfaces (subdivision du problème)
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+### Visualisation
+- [ ] Améliorer le rendu en 3D des murs
+- [ ] Ajouter une vue d'ensemble de tous les murs
+- [ ] Permettre le déplacement des ouvertures par drag & drop (à finaliser)
+- [ ] Ajouter une échelle de visualisation plus précise
+- [ ] Permettre de zoomer/dézoomer avec la molette de la souris
 
-### `npm run eject`
+### Développement et qualité
+- [ ] Ajouter des tests unitaires
+- [ ] Refactoriser le code pour améliorer les performances
+- [ ] Documenter l'API et les composants
+- [ ] Corriger les bugs liés au redimensionnement des murs avec ouvertures
+- [ ] Optimiser les requêtes et le rendu pour de grands projets
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+### Documentation
+- [x] Créer un README avec une todo list
+- [ ] Ajouter une documentation utilisateur complète
+- [ ] Créer un guide de développement pour les contributeurs
+- [ ] Documenter l'algorithme d'optimisation
+- [ ] Ajouter des exemples d'utilisation
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+## Structure du projet
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+```
+src/
+├── components/       # Composants React
+├── styles/           # Fichiers CSS
+├── utils/            # Fonctions utilitaires et algorithmes
+├── index.js          # Point d'entrée de l'application
+└── ...
+```
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+## Bugs connus 🐜
 
-## Learn More
+- L'export PDF n'est pas encore implémenté
+- Certaines validations d'ouvertures peuvent bloquer l'utilisateur dans des cas spécifiques
+- Le déplacement des ouvertures par drag & drop n'est pas finalisé
+- Des problèmes de performance peuvent survenir avec de nombreux murs/ouvertures
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+## Contribution
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+N'hésite pas à contribuer au projet ! Pour ajouter une fonctionnalité ou corriger un bug :
+1. Fork le projet
+2. Crée une branche pour ta fonctionnalité
+3. Fais tes modifications
+4. Soumets une pull request
 
-### Code Splitting
+## Licence
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+Ce projet est sous licence MIT.
