@@ -8,7 +8,8 @@ function MurVisualisation({
   echelle = 0.5,
   onOuvertureSelect,
   ouvertureSelectionneeId,
-  resultat
+  resultat,
+  onModifierOuverture // On utilisera cette prop pour mettre à jour les coordonnées
 }) {
   const visualisationRef = useRef(null);
   const [zoom, setZoom] = useState(echelle);
@@ -59,7 +60,9 @@ function MurVisualisation({
     setShowTooltip(false);
   };
 
-  // Gestionnaire de déplacement d'ouverture
+  // Nouveau ! Gestionnaires pour le drag & drop des ouvertures
+
+  // Gestionnaire de déplacement d'ouverture - démarrage du drag
   const handleOuvertureMouseDown = (e, ouvertureId) => {
     e.preventDefault();
     e.stopPropagation();
@@ -68,15 +71,82 @@ function MurVisualisation({
       const rect = visualisationRef.current.getBoundingClientRect();
       const ouverture = mur.ouvertures.find(o => o.id === ouvertureId);
       
+      // On commence à draguer (l'ouverture !)
       setIsDragging(true);
       onOuvertureSelect(ouvertureId);
       
+      // On enregistre la position de départ du drag
       setDragStartPos({
         x: e.clientX - rect.left - ouverture.x * zoom,
         y: e.clientY - rect.top - ouverture.y * zoom
       });
     }
   };
+  
+  // Nouveau ! Gestionnaire de déplacement pendant le drag
+  const handleMouseMove = (e) => {
+    if (!isDragging || !ouvertureSelectionneeId) return;
+    
+    e.preventDefault();
+    
+    // Récupérer la position du curseur par rapport au conteneur
+    const rect = visualisationRef.current.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+    
+    // Calculer la nouvelle position de l'ouverture (en tenant compte du zoom)
+    const newX = Math.max(0, Math.round((mouseX - dragStartPos.x) / zoom));
+    const newY = Math.max(0, Math.round((mouseY - dragStartPos.y) / zoom));
+    
+    // Récupérer l'ouverture sélectionnée
+    const ouverture = mur.ouvertures.find(o => o.id === ouvertureSelectionneeId);
+    
+    // S'assurer que l'ouverture reste dans les limites du mur
+    const maxX = mur.largeur - ouverture.largeur;
+    const maxY = mur.hauteur - ouverture.hauteur;
+    
+    const clampedX = Math.min(maxX, newX);
+    const clampedY = Math.min(maxY, newY);
+    
+    // Mettre à jour les coordonnées de l'ouverture si elles ont changé
+    if (ouverture.x !== clampedX) {
+      onModifierOuverture(ouvertureSelectionneeId, 'x', clampedX);
+    }
+    
+    if (ouverture.y !== clampedY) {
+      onModifierOuverture(ouvertureSelectionneeId, 'y', clampedY);
+    }
+  };
+  
+  // Nouveau ! Gestionnaire de fin de drag
+  const handleMouseUp = () => {
+    if (isDragging) {
+      setIsDragging(false);
+    }
+  };
+  
+  // Nouveau ! Sortie du curseur de la zone de visualisation
+  const handleMouseLeave = () => {
+    if (isDragging) {
+      setIsDragging(false);
+    }
+    setShowTooltip(false);
+  };
+  
+  // Nouveau ! Ajouter et retirer les écouteurs d'événements pour le drag
+  useEffect(() => {
+    // Si une ouverture est en train d'être déplacée, ajouter les écouteurs
+    if (isDragging) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+    }
+    
+    // Nettoyer les écouteurs quand le composant se démonte ou quand isDragging change
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDragging, ouvertureSelectionneeId, zoom, mur, onModifierOuverture]);
   
   // Gestionnaire de clic sur une plaque pour afficher la vue détaillée
   const handlePlaqueClick = (plaque) => {
@@ -138,7 +208,9 @@ function MurVisualisation({
             width: mur.largeur * zoom,
             height: mur.hauteur * zoom,
             transform: `translate(${pan.x}px, ${pan.y}px)`,
+            cursor: isDragging ? 'grabbing' : 'default' // Nouveau ! Changer le curseur pendant le drag
           }}
+          onMouseLeave={handleMouseLeave} // Nouveau ! Gérer la sortie du curseur
         >
           {/* Plaques */}
           {plaques.map((plaque, index) => (
@@ -219,6 +291,9 @@ function MurVisualisation({
                 top: ouverture.y * zoom,
                 width: ouverture.largeur * zoom,
                 height: ouverture.hauteur * zoom,
+                cursor: isDragging && ouvertureSelectionneeId === ouverture.id ? 'grabbing' : 'grab', // Nouveau ! Curseur spécifique
+                opacity: isDragging && ouvertureSelectionneeId === ouverture.id ? 0.7 : 1, // Nouveau ! Effet visuel pendant le drag
+                zIndex: ouvertureSelectionneeId === ouverture.id ? 25 : 20, // Nouveau ! Mettre l'ouverture sélectionnée au-dessus
               }}
               onMouseDown={(e) => handleOuvertureMouseDown(e, ouverture.id)}
               onMouseOver={(e) => handleMouseOver(e, `${ouverture.type}: ${ouverture.largeur}×${ouverture.hauteur}cm (position: ${ouverture.x}, ${ouverture.y})`)}

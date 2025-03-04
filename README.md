@@ -53,7 +53,7 @@ npm start
 ### Visualisation
 - [ ] Améliorer le rendu en 3D des murs
 - [ ] Ajouter une vue d'ensemble de tous les murs
-- [ ] Permettre le déplacement des ouvertures par drag & drop (à finaliser)
+- [x] Permettre le déplacement des ouvertures par drag & drop (à finaliser)
 - [ ] Ajouter une échelle de visualisation plus précise
 - [ ] Permettre de zoomer/dézoomer avec la molette de la souris
 
