@@ -28,7 +28,7 @@ npm start
 ## Todo List 📋
 
 ### Améliorations de l'interface utilisateur
-- [ ] Ajouter un thème clair/sombre
+- [X] Ajouter un thème clair/sombre
 - [ ] Rendre l'interface responsive pour mobile et tablettes
 - [ ] Ajouter une page d'aide/tutoriel
 - [ ] Créer un logo pour l'application
@@ -37,6 +37,7 @@ npm start
 
 ### Fonctionnalités à implémenter
 - [ ] Export en PDF fonctionnel (actuellement simulé)
+- [ ] Modifier l'origine, la mettre en bas a gauche (actuellement en haut a gauche)
 - [ ] Sauvegarde/chargement de projets
 - [ ] Calcul du coût total en fonction du prix des plaques
 - [ ] Ajouter un historique des modifications (undo/redo)
@@ -65,7 +66,7 @@ npm start
 - [ ] Optimiser les requêtes et le rendu pour de grands projets
 
 ### Documentation
-- [x] Créer un README avec une todo list
+- [X] Créer un README avec une todo list
 - [ ] Ajouter une documentation utilisateur complète
 - [ ] Créer un guide de développement pour les contributeurs
 - [ ] Documenter l'algorithme d'optimisation
