@@ -446,3 +446,124 @@ input:checked + .toggle-slider:before {
   margin-right: var(--spacing-xs);
   color: var(--success-color);
 }
+
+/* Ajouter ces styles dans src/styles/components.css */
+
+/* Style pour les input groups avec boutons */
+.input-group.with-btn {
+  display: flex;
+  align-items: center;
+}
+
+.input-group.with-btn .form-control {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  flex-grow: 1;
+}
+
+.input-group.with-btn .form-control-display {
+  background-color: var(--gray-100);
+  border: 1px solid var(--gray-300);
+  border-right: none;
+  padding: var(--spacing-sm);
+  border-top-left-radius: var(--border-radius);
+  border-bottom-left-radius: var(--border-radius);
+  color: var(--gray-700);
+  flex-grow: 1;
+}
+
+.dark-mode .input-group.with-btn .form-control-display {
+  background-color: var(--gray-800);
+  border-color: var(--gray-700);
+  color: var(--gray-300);
+}
+
+.input-group.with-btn .input-btn {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--gray-200);
+  border: 1px solid var(--gray-300);
+  border-left: none;
+  border-top-right-radius: var(--border-radius);
+  border-bottom-right-radius: var(--border-radius);
+  color: var(--gray-600);
+  padding: 0 var(--spacing-sm);
+}
+
+.dark-mode .input-group.with-btn .input-btn {
+  background-color: var(--gray-700);
+  border-color: var(--gray-700);
+  color: var(--gray-300);
+}
+
+.input-group.with-btn .input-btn:hover {
+  background-color: var(--gray-300);
+  color: var(--primary-color);
+}
+
+.dark-mode .input-group.with-btn .input-btn:hover {
+  background-color: var(--gray-600);
+}
+
+/* Style pour les groupes de boutons radio */
+.radio-group {
+  display: flex;
+  gap: var(--spacing-md);
+  margin-top: 5px;
+}
+
+.radio-label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+}
+
+.radio-label input[type="radio"] {
+  margin-right: var(--spacing-xs);
+}
+
+/* Styles pour les différents types d'ouvertures dans la visualisation */
+.ouverture.tuyau-eau,
+.ouverture.tuyau-d-eau {
+  background-color: rgba(58, 134, 255, 0.2);
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+  border-radius: 50%; /* Pour rendre l'ouverture circulaire */
+}
+
+.ouverture.prise {
+  background-color: rgba(255, 120, 0, 0.2);
+  border-color: rgb(255, 120, 0);
+  color: rgb(255, 120, 0);
+}
+
+.ouverture.interrupteur {
+  background-color: rgba(144, 109, 255, 0.2);
+  border-color: rgb(144, 109, 255);
+  color: rgb(144, 109, 255);
+}
+
+/* Forms */
+.form-group.full {
+  width: 100%;
+}
+
+/* Styles pour l'aperçu des éléments multiples */
+.elements-preview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  margin-top: 5px;
+  height: 20px;
+}
+
+.element-preview-item {
+  width: 8px;
+  height: 8px;
+  background-color: var(--gray-500);
+  border-radius: 1px;
+}

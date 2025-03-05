@@ -73,10 +73,9 @@ function MurVisualisation({
       onOuvertureSelect(ouvertureId);
       
       // On enregistre la position de départ du drag
-      // Calcul avec origine en bas à gauche
       setDragStartPos({
         x: e.clientX - rect.left - ouverture.x * zoom,
-        y: rect.height - (e.clientY - rect.top) - ouverture.y * zoom
+        y: rect.bottom - e.clientY - ouverture.y * zoom // Changement ici pour l'origine en bas
       });
     }
   };
@@ -90,8 +89,7 @@ function MurVisualisation({
     // Récupérer la position du curseur par rapport au conteneur
     const rect = visualisationRef.current.getBoundingClientRect();
     const mouseX = e.clientX - rect.left;
-    // Calcul avec origine en bas à gauche
-    const mouseY = rect.height - (e.clientY - rect.top);
+    const mouseY = rect.bottom - e.clientY; // On inverse pour avoir l'origine en bas à gauche
     
     // Calculer la nouvelle position de l'ouverture (en tenant compte du zoom)
     const newX = Math.max(0, Math.round((mouseX - dragStartPos.x) / zoom));
@@ -212,100 +210,135 @@ function MurVisualisation({
         >
           {/* Plaques */}
           {plaques.map((plaque, index) => (
-            <div
-              key={`plaque-${index}`}
-              className={`plaque ${plaque.ajustementNecessaire ? 'ajustement' : ''}`}
-              style={{
-                left: plaque.x * zoom,
-                bottom: plaque.y * zoom, // Utiliser bottom au lieu de top pour l'origine en bas à gauche
-                width: plaque.largeur * zoom,
-                height: plaque.hauteur * zoom,
-                cursor: 'pointer',
-                position: 'absolute'
-              }}
-              onClick={() => handlePlaqueClick(plaque)}
-              onMouseOver={(e) => {
-                let tooltipText = `Plaque #${index+1}: ${plaque.largeur}×${plaque.hauteur}cm`;
-                
-                if (plaque.ajustementNecessaire) {
-                  tooltipText += `\nAjustement nécessaire: cette plaque doit être découpée`;
-                  tooltipText += `\nPlaque originale: ${plaque.orientation === 'normal' ? dimensionsPlaque.largeur : dimensionsPlaque.hauteur}×${plaque.orientation === 'normal' ? dimensionsPlaque.hauteur : dimensionsPlaque.largeur} cm`;
-                }
-                
-                if (plaque.decoupes && plaque.decoupes.length > 0) {
-                  tooltipText += '\nDécoupes nécessaires:';
-                  plaque.decoupes.forEach(d => {
-                    tooltipText += `\n- ${d.type || 'découpe'}: position (${d.xLocal || 0},${d.yLocal || 0}) cm, taille ${d.largeur}×${d.hauteur} cm`;
-                  });
-                } else {
-                  tooltipText += '\nAucune découpe pour ouverture n\'est nécessaire';
-                }
-                
-                tooltipText += '\nCliquez pour voir les détails de découpe';
-                
-                handleMouseOver(e, tooltipText);
-              }}
-              onMouseOut={handleMouseOut}
-            >
-              <div className="plaque-numero">#{index+1}</div>
-              
-              {/* Ajout des dimensions sur les bords de la plaque */}
-              <div className="plaque-dimension plaque-largeur">
-                {plaque.largeur} cm
-              </div>
-              <div className="plaque-dimension plaque-hauteur">
-                {plaque.hauteur} cm
-              </div>
-              
-              {/* Afficher les découpes dans les plaques */}
-              {plaque.decoupes && plaque.decoupes.map((decoupe, decoupeIndex) => (
-                <div
-                  key={`decoupe-${index}-${decoupeIndex}`}
-                  className={`decoupe ${decoupe.type || 'autre'}`}
-                  style={{
-                    left: (decoupe.xLocal || decoupe.x - plaque.x) * zoom,
-                    bottom: (decoupe.yLocal || decoupe.y - plaque.y) * zoom, // Utiliser bottom au lieu de top
-                    width: decoupe.largeur * zoom,
-                    height: decoupe.hauteur * zoom,
-                    position: 'absolute'
-                  }}
-                >
-                  {/* Dimensions de la découpe */}
-                  <div className="decoupe-cotes">
-                    <div className="decoupe-x">{decoupe.xLocal || (decoupe.x - plaque.x)} cm</div>
-                    <div className="decoupe-y">{decoupe.yLocal || (decoupe.y - plaque.y)} cm</div>
-                    <div className="decoupe-dimension">{decoupe.largeur}×{decoupe.hauteur} cm</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ))}
-
+  <div
+    key={`plaque-${index}`}
+    className={`plaque ${plaque.ajustementNecessaire ? 'ajustement' : ''}`}
+    style={{
+      left: plaque.x * zoom,
+      bottom: plaque.y * zoom, // On utilise bottom au lieu de top
+      width: plaque.largeur * zoom,
+      height: plaque.hauteur * zoom,
+      cursor: 'pointer'
+    }}
+    onClick={() => handlePlaqueClick(plaque)}
+    onMouseOver={(e) => {
+      let tooltipText = `Plaque #${index+1}: ${plaque.largeur}×${plaque.hauteur}cm`;
+      
+      if (plaque.ajustementNecessaire) {
+        tooltipText += `\nAjustement nécessaire: cette plaque doit être découpée`;
+        tooltipText += `\nPlaque originale: ${plaque.orientation === 'normal' ? dimensionsPlaque.largeur : dimensionsPlaque.hauteur}×${plaque.orientation === 'normal' ? dimensionsPlaque.hauteur : dimensionsPlaque.largeur} cm`;
+      }
+      
+      if (plaque.decoupes && plaque.decoupes.length > 0) {
+        tooltipText += '\nDécoupes nécessaires:';
+        plaque.decoupes.forEach(d => {
+          tooltipText += `\n- ${d.type || 'découpe'}: position (${d.xLocal || 0},${d.yLocal || 0}) cm, taille ${d.largeur}×${d.hauteur} cm`;
+        });
+      } else {
+        tooltipText += '\nAucune découpe pour ouverture n\'est nécessaire';
+      }
+      
+      tooltipText += '\nCliquez pour voir les détails de découpe';
+      
+      handleMouseOver(e, tooltipText);
+    }}
+    onMouseOut={handleMouseOut}
+  >
+    <div className="plaque-numero">#{index+1}</div>
+    
+    {/* Ajout des dimensions sur les bords de la plaque */}
+    <div className="plaque-dimension plaque-largeur">
+      {plaque.largeur} cm
+    </div>
+    <div className="plaque-dimension plaque-hauteur">
+      {plaque.hauteur} cm
+    </div>
+    
+    {/* Afficher les découpes dans les plaques */}
+    {plaque.decoupes && plaque.decoupes.map((decoupe, decoupeIndex) => (
+      <div
+        key={`decoupe-${index}-${decoupeIndex}`}
+        className={`decoupe ${decoupe.type || 'autre'}`}
+        style={{
+          left: (decoupe.xLocal || decoupe.x - plaque.x) * zoom,
+          bottom: (decoupe.yLocal || decoupe.y - plaque.y) * zoom, // On utilise bottom au lieu de top
+          width: decoupe.largeur * zoom,
+          height: decoupe.hauteur * zoom,
+        }}
+      >
+        {/* Dimensions de la découpe */}
+        <div className="decoupe-cotes">
+          <div className="decoupe-x">{decoupe.xLocal || (decoupe.x - plaque.x)} cm</div>
+          <div className="decoupe-y">{decoupe.yLocal || (decoupe.y - plaque.y)} cm</div>
+          <div className="decoupe-dimension">{decoupe.largeur}×{decoupe.hauteur} cm</div>
+        </div>
+      </div>
+    ))}
+  </div>
+))}
           {/* Ouvertures */}
-          {ouvertures.map((ouverture) => (
-            <div
-              key={`ouverture-${ouverture.id}`}
-              className={`ouverture ${ouverture.type} ${ouvertureSelectionneeId === ouverture.id ? 'selected' : ''}`}
-              style={{
-                left: ouverture.x * zoom,
-                bottom: ouverture.y * zoom, // Utiliser bottom au lieu de top
-                width: ouverture.largeur * zoom,
-                height: ouverture.hauteur * zoom,
-                cursor: isDragging && ouvertureSelectionneeId === ouverture.id ? 'grabbing' : 'grab',
-                opacity: isDragging && ouvertureSelectionneeId === ouverture.id ? 0.7 : 1,
-                zIndex: ouvertureSelectionneeId === ouverture.id ? 25 : 20,
-                position: 'absolute'
-              }}
-              onMouseDown={(e) => handleOuvertureMouseDown(e, ouverture.id)}
-              onMouseOver={(e) => handleMouseOver(e, `${ouverture.type}: ${ouverture.largeur}×${ouverture.hauteur}cm (position: ${ouverture.x}, ${ouverture.y})`)}
-              onMouseOut={handleMouseOut}
-            >
-              <span>{ouverture.type}</span>
-              <div className="ouverture-dimension">
-                {ouverture.largeur} × {ouverture.hauteur} cm
-              </div>
-            </div>
+          {ouvertures.map((ouverture) => {
+  // Pour les tuyaux, utiliser une forme ronde
+  const isTuyau = ouverture.typeBase === 'tuyau d\'eau' || ouverture.type === 'tuyau d\'eau';
+  const className = `ouverture ${ouverture.type.replace(/\s/g, '-').replace(/'/g, '-').toLowerCase()} ${ouvertureSelectionneeId === ouverture.id ? 'selected' : ''}`;
+  
+  return (
+    <div
+      key={`ouverture-${ouverture.id}`}
+      className={className}
+      style={{
+        left: ouverture.x * zoom,
+        bottom: ouverture.y * zoom, // On utilise bottom au lieu de top
+        width: ouverture.largeur * zoom,
+        height: ouverture.hauteur * zoom,
+        borderRadius: isTuyau ? '50%' : '4px',
+        cursor: isDragging && ouvertureSelectionneeId === ouverture.id ? 'grabbing' : 'grab',
+        opacity: isDragging && ouvertureSelectionneeId === ouverture.id ? 0.7 : 1,
+        zIndex: ouvertureSelectionneeId === ouverture.id ? 25 : 20,
+      }}
+      onMouseDown={(e) => handleOuvertureMouseDown(e, ouverture.id)}
+      onMouseOver={(e) => {
+        let tooltipText = `${ouverture.type}: ${ouverture.largeur}×${ouverture.hauteur}cm (position: ${ouverture.x}, ${ouverture.y})`;
+        
+        // Infos supplémentaires selon le type
+        if (isTuyau) {
+          tooltipText = `${ouverture.type}: Ø${ouverture.diametre}cm (position: ${ouverture.x}, ${ouverture.y})`;
+        } else if (ouverture.nbElements && ouverture.nbElements > 1) {
+          tooltipText += `\nNombre d'éléments: ${ouverture.nbElements}`;
+          tooltipText += `\nDisposition: ${ouverture.disposition || 'verticale'}`;
+        }
+        
+        handleMouseOver(e, tooltipText);
+      }}
+      onMouseOut={handleMouseOut}
+    >
+      <span>{ouverture.type}</span>
+      
+      {isTuyau ? (
+        <div className="ouverture-dimension">
+          Ø{ouverture.diametre} cm
+        </div>
+      ) : (
+        <div className="ouverture-dimension">
+          {ouverture.largeur} × {ouverture.hauteur} cm
+        </div>
+      )}
+      
+      {/* Affichage des éléments multiples pour les prises/interrupteurs */}
+      {(ouverture.typeBase === 'prise' || ouverture.typeBase === 'interrupteur') && 
+       ouverture.nbElements > 1 && (
+        <div className="elements-preview" style={{
+          flexDirection: ouverture.disposition === 'horizontal' ? 'row' : 'column'
+        }}>
+          {Array.from({ length: Math.min(ouverture.nbElements, 5) }).map((_, i) => (
+            <div key={i} className="element-preview-item" />
           ))}
+          {ouverture.nbElements > 5 && <span>...</span>}
+        </div>
+      )}
+    </div>
+  );
+})}
         </div>
       </div>
       

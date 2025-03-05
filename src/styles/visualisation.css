@@ -558,3 +558,57 @@
     transform: translateY(0);
   }
 }
+
+/* Ajoute ça dans src/styles/visualisation.css */
+
+/* Modification pour que l'origine soit en bas à gauche */
+.mur-canvas {
+  position: relative;
+  /* Ces propriétés sont importantes pour le système de coordonnées */
+  transform-origin: bottom left;
+}
+
+/* Pour les plaques et ouvertures, on utilise position absolute avec bottom au lieu de top */
+.plaque, .ouverture, .decoupe {
+  position: absolute;
+}
+
+/* Modifier l'affichage des numéros de plaque pour qu'ils restent lisibles */
+.plaque-numero {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+}
+
+/* Ajuster les dimensions affichées sur les plaques */
+.plaque-dimension.plaque-largeur {
+  position: absolute;
+  bottom: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.plaque-dimension.plaque-hauteur {
+  position: absolute;
+  left: -20px;
+  bottom: 50%;
+  transform: translateY(50%) rotate(-90deg);
+}
+
+/* Ajuster l'affichage des dimensions des ouvertures */
+.ouverture-dimension {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  font-size: 0.8rem;
+  background-color: rgba(255, 255, 255, 0.7);
+  padding: 2px 4px;
+  border-radius: 2px;
+  white-space: nowrap;
+}
+
+.dark-mode .ouverture-dimension {
+  background-color: rgba(0, 0, 0, 0.5);
+}

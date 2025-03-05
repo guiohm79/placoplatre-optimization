@@ -36,7 +36,7 @@ npm start
 - [ ] Ajouter des tooltips explicatifs sur les champs complexes
 
 ### Fonctionnalités à implémenter
-- [ ] Export en PDF fonctionnel (actuellement simulé)
+- [X] Export en PDF fonctionnel (actuellement simulé)
 - [X] Modifier l'origine, la mettre en bas a gauche (actuellement en haut a gauche)
 - [ ] Sauvegarde/chargement de projets
 - [ ] Calcul du coût total en fonction du prix des plaques
@@ -85,10 +85,11 @@ src/
 
 ## Bugs connus 🐜
 
-- L'export PDF n'est pas encore implémenté
+- L'export PDF donne deux fois le meme plan (mur 1 et 2 sont identique)
 - Certaines validations d'ouvertures peuvent bloquer l'utilisateur dans des cas spécifiques
-- Le déplacement des ouvertures par drag & drop n'est pas finalisé
-- Des problèmes de performance peuvent survenir avec de nombreux murs/ouvertures
+- Le choix des ouvertures n'est pas correcte, 
+
+
 
 ## Contribution
 

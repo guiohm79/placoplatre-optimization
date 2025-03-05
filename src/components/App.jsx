@@ -13,6 +13,7 @@ import '../styles/components.css';
 import { exporterResultatsEnPDF } from '../utils/pdfExport';
 import PdfPreviewModal from './PdfPreviewModal';
 import '../styles/pdfExport.css';
+import { appliquerModele } from '../utils/modelesOuvertures';
 
 function App() {
   // État pour les dimensions des plaques disponibles
@@ -152,14 +153,17 @@ function App() {
   
   // Pour ajouter une nouvelle ouverture au mur sélectionné
   const ajouterOuverture = () => {
-    const nouvelleOuverture = {
+    // Définir une ouverture de base avec juste l'ID et la position
+    const baseOuverture = {
       id: Date.now(),
       x: 10,
-      y: 10, // Maintenant c'est depuis le bas !
-      largeur: 60,
-      hauteur: 60,
-      type: 'autre'
+      y: 10
     };
+    
+    // Appliquer le modèle par défaut (porte)
+    const nouvelleOuverture = appliquerModele('porte', baseOuverture);
+    
+    console.log("Ajout d'une nouvelle ouverture:", nouvelleOuverture);
     
     setMurs(murs.map(m => {
       if (m.id === murSelectionneeId) {
@@ -173,6 +177,7 @@ function App() {
     
     setOuvertureSelectionneeId(nouvelleOuverture.id);
   };
+  
   
   // Pour supprimer une ouverture du mur sélectionné
   const supprimerOuverture = (id) => {
@@ -193,6 +198,7 @@ function App() {
   
   // Mettre à jour les dimensions de l'ouverture sélectionnée
   const modifierOuverture = (id, champ, valeur) => {
+    console.log("modifierOuverture appelé avec:", id, champ, valeur);
     const ouverture = murSelectionnee.ouvertures.find(o => o.id === id);
     if (!ouverture) return;
     
@@ -236,7 +242,13 @@ function App() {
           ...m,
           ouvertures: m.ouvertures.map(o => {
             if (o.id === id) {
-              return { ...o, [champ]: valeur };
+              // Pour les champs spéciaux, faire des ajustements supplémentaires
+              if (champ === 'nbElements' || champ === 'disposition') {
+                // Ces adjustements sont maintenant gérés dans le composant OuvertureItem
+                return { ...o, [champ]: valeur };
+              } else {
+                return { ...o, [champ]: valeur };
+              }
             }
             return o;
           })
@@ -245,7 +257,6 @@ function App() {
       return m;
     }));
   };
-  
   // Fonction pour calculer l'optimisation
   const optimiserDecoupes = () => {
     // Vérifier s'il y a des erreurs
