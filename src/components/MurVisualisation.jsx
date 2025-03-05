@@ -9,7 +9,7 @@ function MurVisualisation({
   onOuvertureSelect,
   ouvertureSelectionneeId,
   resultat,
-  onModifierOuverture // On utilisera cette prop pour mettre à jour les coordonnées
+  onModifierOuverture
 }) {
   const visualisationRef = useRef(null);
   const [zoom, setZoom] = useState(echelle);
@@ -24,18 +24,7 @@ function MurVisualisation({
   const [selectedPlaque, setSelectedPlaque] = useState(null);
   const [showDetailView, setShowDetailView] = useState(false);
 
-  // Fonctions de conversion pour l'axe Y (origine en bas à gauche)
-  const convertirYVersBasGauche = (y, hauteurElement) => {
-    return mur.hauteur - y - hauteurElement;
-  };
-
-  // Fonction inverse pour reconvertir (du haut vers le bas)
-  const convertirDepuisBasGauche = (yAffichage, hauteurElement) => {
-    return mur.hauteur - yAffichage - hauteurElement;
-  };
-
   // Utiliser directement les plaques calculées par l'algorithme d'optimisation
-  // au lieu de recalculer la disposition
   const getPlaques = () => {
     if (!resultat || !mur) return [];
     
@@ -84,7 +73,7 @@ function MurVisualisation({
       onOuvertureSelect(ouvertureId);
       
       // On enregistre la position de départ du drag
-      // Pour l'origine en bas à gauche, il faut inverser la position Y
+      // Calcul avec origine en bas à gauche
       setDragStartPos({
         x: e.clientX - rect.left - ouverture.x * zoom,
         y: rect.height - (e.clientY - rect.top) - ouverture.y * zoom
@@ -92,7 +81,7 @@ function MurVisualisation({
     }
   };
   
-  // Gestionnaire de déplacement pendant le drag (modifié pour l'axe Y inversé)
+  // Gestionnaire de déplacement pendant le drag
   const handleMouseMove = (e) => {
     if (!isDragging || !ouvertureSelectionneeId) return;
     
@@ -101,7 +90,7 @@ function MurVisualisation({
     // Récupérer la position du curseur par rapport au conteneur
     const rect = visualisationRef.current.getBoundingClientRect();
     const mouseX = e.clientX - rect.left;
-    // Pour l'origine en bas à gauche, il faut inverser la position Y
+    // Calcul avec origine en bas à gauche
     const mouseY = rect.height - (e.clientY - rect.top);
     
     // Calculer la nouvelle position de l'ouverture (en tenant compte du zoom)
@@ -145,13 +134,11 @@ function MurVisualisation({
   
   // Ajouter et retirer les écouteurs d'événements pour le drag
   useEffect(() => {
-    // Si une ouverture est en train d'être déplacée, ajouter les écouteurs
     if (isDragging) {
       document.addEventListener('mousemove', handleMouseMove);
       document.addEventListener('mouseup', handleMouseUp);
     }
     
-    // Nettoyer les écouteurs quand le composant se démonte ou quand isDragging change
     return () => {
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
@@ -218,50 +205,47 @@ function MurVisualisation({
             width: mur.largeur * zoom,
             height: mur.hauteur * zoom,
             transform: `translate(${pan.x}px, ${pan.y}px)`,
-            cursor: isDragging ? 'grabbing' : 'default'
+            cursor: isDragging ? 'grabbing' : 'default',
+            position: 'relative'
           }}
           onMouseLeave={handleMouseLeave}
         >
-          {/* Plaques - MODIFIÉ pour origine en bas à gauche */}
+          {/* Plaques */}
           {plaques.map((plaque, index) => (
             <div
               key={`plaque-${index}`}
-              className={`plaque ${plaque.ajustementNecessaire ? 'ajustement' : ''} ${plaque.issueDeChute ? 'issueDeChuteReuse' : ''}`}
+              className={`plaque ${plaque.ajustementNecessaire ? 'ajustement' : ''}`}
               style={{
                 left: plaque.x * zoom,
-                top: plaque.y * zoom,
+                bottom: plaque.y * zoom, // Utiliser bottom au lieu de top pour l'origine en bas à gauche
                 width: plaque.largeur * zoom,
                 height: plaque.hauteur * zoom,
-                cursor: 'pointer'
-                }}
-                onClick={() => handlePlaqueClick(plaque)}
-                onMouseOver={(e) => {
-                  let tooltipText = `Plaque #${index+1}: ${plaque.largeur}×${plaque.hauteur}cm`;
-                  
-                  if (plaque.issueDeChute) {
-                    tooltipText += `\n♻️ Cette plaque provient d'une chute réutilisée`;
-                    if (plaque.chuteOriginelle) {
-                      tooltipText += `\nChute issue de: ${plaque.chuteOriginelle.plaqueDimensions}`;
-                    }
-                  } else if (plaque.ajustementNecessaire) {
-                    tooltipText += `\nAjustement nécessaire: cette plaque doit être découpée`;
-                    tooltipText += `\nPlaque originale: ${plaque.orientation === 'normal' ? dimensionsPlaque.largeur : dimensionsPlaque.hauteur}×${plaque.orientation === 'normal' ? dimensionsPlaque.hauteur : dimensionsPlaque.largeur} cm`;
-                  }
-                  
-                  if (plaque.decoupes && plaque.decoupes.length > 0) {
-                    tooltipText += '\nDécoupes nécessaires:';
-                    plaque.decoupes.forEach(d => {
-                      tooltipText += `\n- ${d.type || 'découpe'}: position (${d.xLocal || 0},${d.yLocal || 0}) cm, taille ${d.largeur}×${d.hauteur} cm`;
-                    });
-                  } else {
-                    tooltipText += '\nAucune découpe pour ouverture n\'est nécessaire';
-                  }
-                  
-                  tooltipText += '\nCliquez pour voir les détails de découpe';
-                  
-                  handleMouseOver(e, tooltipText);
-                }}
-                onMouseOut={handleMouseOut}
+                cursor: 'pointer',
+                position: 'absolute'
+              }}
+              onClick={() => handlePlaqueClick(plaque)}
+              onMouseOver={(e) => {
+                let tooltipText = `Plaque #${index+1}: ${plaque.largeur}×${plaque.hauteur}cm`;
+                
+                if (plaque.ajustementNecessaire) {
+                  tooltipText += `\nAjustement nécessaire: cette plaque doit être découpée`;
+                  tooltipText += `\nPlaque originale: ${plaque.orientation === 'normal' ? dimensionsPlaque.largeur : dimensionsPlaque.hauteur}×${plaque.orientation === 'normal' ? dimensionsPlaque.hauteur : dimensionsPlaque.largeur} cm`;
+                }
+                
+                if (plaque.decoupes && plaque.decoupes.length > 0) {
+                  tooltipText += '\nDécoupes nécessaires:';
+                  plaque.decoupes.forEach(d => {
+                    tooltipText += `\n- ${d.type || 'découpe'}: position (${d.xLocal || 0},${d.yLocal || 0}) cm, taille ${d.largeur}×${d.hauteur} cm`;
+                  });
+                } else {
+                  tooltipText += '\nAucune découpe pour ouverture n\'est nécessaire';
+                }
+                
+                tooltipText += '\nCliquez pour voir les détails de découpe';
+                
+                handleMouseOver(e, tooltipText);
+              }}
+              onMouseOut={handleMouseOut}
             >
               <div className="plaque-numero">#{index+1}</div>
               
@@ -280,10 +264,10 @@ function MurVisualisation({
                   className={`decoupe ${decoupe.type || 'autre'}`}
                   style={{
                     left: (decoupe.xLocal || decoupe.x - plaque.x) * zoom,
-                    // Conversion pour les découpes (relatives à la plaque)
-                    top: (decoupe.yLocal || decoupe.y - plaque.y) * zoom,
+                    bottom: (decoupe.yLocal || decoupe.y - plaque.y) * zoom, // Utiliser bottom au lieu de top
                     width: decoupe.largeur * zoom,
                     height: decoupe.hauteur * zoom,
+                    position: 'absolute'
                   }}
                 >
                   {/* Dimensions de la découpe */}
@@ -297,23 +281,23 @@ function MurVisualisation({
             </div>
           ))}
 
-          {/* Ouvertures - MODIFIÉ pour origine en bas à gauche */}
+          {/* Ouvertures */}
           {ouvertures.map((ouverture) => (
             <div
               key={`ouverture-${ouverture.id}`}
               className={`ouverture ${ouverture.type} ${ouvertureSelectionneeId === ouverture.id ? 'selected' : ''}`}
               style={{
                 left: ouverture.x * zoom,
-                // Conversion pour afficher avec origine en bas à gauche
-                bottom: ouverture.y * zoom,
+                bottom: ouverture.y * zoom, // Utiliser bottom au lieu de top
                 width: ouverture.largeur * zoom,
                 height: ouverture.hauteur * zoom,
                 cursor: isDragging && ouvertureSelectionneeId === ouverture.id ? 'grabbing' : 'grab',
                 opacity: isDragging && ouvertureSelectionneeId === ouverture.id ? 0.7 : 1,
                 zIndex: ouvertureSelectionneeId === ouverture.id ? 25 : 20,
+                position: 'absolute'
               }}
               onMouseDown={(e) => handleOuvertureMouseDown(e, ouverture.id)}
-              onMouseOver={(e) => handleMouseOver(e, `${ouverture.type}: ${ouverture.largeur}×${ouverture.hauteur}cm (position: ${ouverture.x}, ${ouverture.y} depuis le bas)`)}
+              onMouseOver={(e) => handleMouseOver(e, `${ouverture.type}: ${ouverture.largeur}×${ouverture.hauteur}cm (position: ${ouverture.x}, ${ouverture.y})`)}
               onMouseOut={handleMouseOut}
             >
               <span>{ouverture.type}</span>
@@ -357,7 +341,7 @@ function MurVisualisation({
                   <h4>Informations générales</h4>
                   <p><strong>Dimensions d'origine:</strong> {selectedPlaque.orientation === 'normal' ? dimensionsPlaque.largeur : dimensionsPlaque.hauteur} × {selectedPlaque.orientation === 'normal' ? dimensionsPlaque.hauteur : dimensionsPlaque.largeur} cm</p>
                   <p><strong>Dimensions finales:</strong> {selectedPlaque.largeur} × {selectedPlaque.hauteur} cm</p>
-                  <p><strong>Position sur le mur:</strong> ({selectedPlaque.x}, {selectedPlaque.y} depuis le bas) cm</p>
+                  <p><strong>Position sur le mur:</strong> ({selectedPlaque.x}, {selectedPlaque.y}) cm depuis le bas à gauche</p>
                   <p><strong>Type d'ajustement:</strong> {selectedPlaque.ajustementNecessaire ? "Découpe requise" : "Aucun ajustement nécessaire"}</p>
                   <p><strong>Orientation:</strong> {selectedPlaque.orientation === 'normal' ? "Horizontale" : "Verticale"}</p>
                 </div>
@@ -475,9 +459,10 @@ function MurVisualisation({
                     </svg>
                   </div>
                   
-                  {/* Dessin de la plaque finale avec découpes - Pas besoin de modifier ici */}
+                  {/* Dessin de la plaque finale avec découpes */}
                   <div className="detail-plaque-finale">
                     <div className="detail-plaque-label">Plaque avec découpes pour ouvertures</div>
+                    {/* SVG avec coordonnées en bas à gauche */}
                     <svg 
                       viewBox={`0 0 ${selectedPlaque.largeur} ${selectedPlaque.hauteur}`}
                       preserveAspectRatio="xMidYMid meet"
@@ -494,16 +479,20 @@ function MurVisualisation({
                         fill="#e9f0ff" 
                       />
                       
-                      {/* Dessiner les découpes */}
+                      {/* Dessiner les découpes - Avec inversion de l'axe Y pour SVG */}
                       {selectedPlaque.decoupes && selectedPlaque.decoupes.map((decoupe, index) => {
                         const xLocal = decoupe.xLocal || (decoupe.x - selectedPlaque.x);
                         const yLocal = decoupe.yLocal || (decoupe.y - selectedPlaque.y);
+                        
+                        // Dans SVG, l'origine est en haut à gauche, nous devons donc inverser l'axe Y
+                        // sachant que notre modèle a l'origine en bas à gauche
+                        const yLocalSvg = selectedPlaque.hauteur - yLocal - decoupe.hauteur;
                         
                         return (
                           <g key={index}>
                             <rect
                               x={xLocal}
-                              y={yLocal}
+                              y={yLocalSvg}
                               width={decoupe.largeur}
                               height={decoupe.hauteur}
                               stroke="#ef476f"
@@ -533,28 +522,28 @@ function MurVisualisation({
                             />
                             <line 
                               x1="0" 
-                              y1={yLocal} 
+                              y1={yLocalSvg} 
                               x2={selectedPlaque.largeur} 
-                              y2={yLocal}
+                              y2={yLocalSvg}
                               stroke="#ef476f" 
                               strokeWidth="1" 
                               strokeDasharray="5,5"
                             />
                             <line 
                               x1="0" 
-                              y1={yLocal + decoupe.hauteur} 
+                              y1={yLocalSvg + decoupe.hauteur} 
                               x2={selectedPlaque.largeur} 
-                              y2={yLocal + decoupe.hauteur}
+                              y2={yLocalSvg + decoupe.hauteur}
                               stroke="#ef476f" 
                               strokeWidth="1" 
                               strokeDasharray="5,5"
                             />
                             
                             {/* Étiquettes des dimensions */}
-                            <text x={xLocal + decoupe.largeur / 2} y={yLocal - 5} textAnchor="middle" fontSize="12" fill="#ef476f">
+                            <text x={xLocal + decoupe.largeur / 2} y={yLocalSvg - 5} textAnchor="middle" fontSize="12" fill="#ef476f">
                               {decoupe.largeur} cm
                             </text>
-                            <text x={xLocal - 5} y={yLocal + decoupe.hauteur / 2} textAnchor="middle" fontSize="12" fill="#ef476f" transform={`rotate(-90, ${xLocal - 5}, ${yLocal + decoupe.hauteur / 2})`}>
+                            <text x={xLocal - 5} y={yLocalSvg + decoupe.hauteur / 2} textAnchor="middle" fontSize="12" fill="#ef476f" transform={`rotate(-90, ${xLocal - 5}, ${yLocalSvg + decoupe.hauteur / 2})`}>
                               {decoupe.hauteur} cm
                             </text>
                             
@@ -562,12 +551,12 @@ function MurVisualisation({
                             <text x={xLocal} y="-10" textAnchor="start" fontSize="10" fill="#666">
                               {xLocal} cm
                             </text>
-                            <text x="-10" y={yLocal} textAnchor="end" fontSize="10" fill="#666">
+                            <text x="-10" y={yLocalSvg} textAnchor="end" fontSize="10" fill="#666">
                               {yLocal} cm
                             </text>
                             
                             {/* Type de découpe */}
-                            <text x={xLocal + decoupe.largeur / 2} y={yLocal + decoupe.hauteur / 2} textAnchor="middle" dominantBaseline="middle" fontSize="14" fill="#ef476f" fontWeight="bold">
+                            <text x={xLocal + decoupe.largeur / 2} y={yLocalSvg + decoupe.hauteur / 2} textAnchor="middle" dominantBaseline="middle" fontSize="14" fill="#ef476f" fontWeight="bold">
                               {decoupe.type || 'DÉCOUPE'}
                             </text>
                           </g>
