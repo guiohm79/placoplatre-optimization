@@ -28,7 +28,7 @@ export const validerDimensionsMur = (mur, champ, valeur) => {
   return erreur;
 };
 
-// Valider une ouverture
+// Valider une ouverture (avec origine en bas à gauche)
 export const validerOuverture = (mur, ouverture, champ, valeur) => {
   const nouvelleOuverture = {...ouverture, [champ]: valeur};
   let erreur = '';

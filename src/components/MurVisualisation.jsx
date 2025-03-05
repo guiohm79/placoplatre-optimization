@@ -84,12 +84,10 @@ function MurVisualisation({
       onOuvertureSelect(ouvertureId);
       
       // On enregistre la position de départ du drag
-      // MODIFIÉ: Utiliser le Y converti pour l'affichage
-      const yAffiche = convertirYVersBasGauche(ouverture.y, ouverture.hauteur);
-      
+      // Pour l'origine en bas à gauche, il faut inverser la position Y
       setDragStartPos({
         x: e.clientX - rect.left - ouverture.x * zoom,
-        y: e.clientY - rect.top - yAffiche * zoom
+        y: rect.height - (e.clientY - rect.top) - ouverture.y * zoom
       });
     }
   };
@@ -103,24 +101,22 @@ function MurVisualisation({
     // Récupérer la position du curseur par rapport au conteneur
     const rect = visualisationRef.current.getBoundingClientRect();
     const mouseX = e.clientX - rect.left;
-    const mouseY = e.clientY - rect.top;
+    // Pour l'origine en bas à gauche, il faut inverser la position Y
+    const mouseY = rect.height - (e.clientY - rect.top);
     
-    // Calculer la nouvelle position X (inchangée)
+    // Calculer la nouvelle position de l'ouverture (en tenant compte du zoom)
     const newX = Math.max(0, Math.round((mouseX - dragStartPos.x) / zoom));
+    const newY = Math.max(0, Math.round((mouseY - dragStartPos.y) / zoom));
     
-    // Étape 1: Calculer la position apparente Y (en coordonnées d'affichage)
-    const yAffichage = Math.round((mouseY - dragStartPos.y) / zoom);
-    
-    // Étape 2: Reconvertir en coordonnées logiques (origine en bas)
+    // Récupérer l'ouverture sélectionnée
     const ouverture = mur.ouvertures.find(o => o.id === ouvertureSelectionneeId);
-    const newY = convertirDepuisBasGauche(yAffichage, ouverture.hauteur);
     
     // S'assurer que l'ouverture reste dans les limites du mur
     const maxX = mur.largeur - ouverture.largeur;
     const maxY = mur.hauteur - ouverture.hauteur;
     
-    const clampedX = Math.min(maxX, Math.max(0, newX));
-    const clampedY = Math.min(maxY, Math.max(0, newY));
+    const clampedX = Math.min(maxX, newX);
+    const clampedY = Math.min(maxY, newY);
     
     // Mettre à jour les coordonnées de l'ouverture si elles ont changé
     if (ouverture.x !== clampedX) {
@@ -309,7 +305,7 @@ function MurVisualisation({
               style={{
                 left: ouverture.x * zoom,
                 // Conversion pour afficher avec origine en bas à gauche
-                top: convertirYVersBasGauche(ouverture.y, ouverture.hauteur) * zoom,
+                bottom: ouverture.y * zoom,
                 width: ouverture.largeur * zoom,
                 height: ouverture.hauteur * zoom,
                 cursor: isDragging && ouvertureSelectionneeId === ouverture.id ? 'grabbing' : 'grab',

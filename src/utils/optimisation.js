@@ -2,137 +2,12 @@
 
 /**
  * Algorithme d'optimisation des découpes de plaques de placoplâtre
- * Avec gestion intelligente des chutes réutilisables
+ * Avec correction pour la couverture complète de tous les murs
+ * Système de coordonnées avec origine en bas à gauche
  */
 
-// Dimensions minimales pour qu'une chute soit considérée comme réutilisable (en cm)
-const TAILLE_MIN_CHUTE = 40; // Une chute doit faire au moins 40cm dans une dimension pour être réutilisable
-
-// Structure pour stocker les chutes disponibles, classées par surface décroissante
-let chutesDisponibles = [];
-
-// Détermine si une chute est réutilisable selon ses dimensions
-const estReutilisable = (largeur, hauteur) => {
-  return (largeur >= TAILLE_MIN_CHUTE && hauteur >= 10) || 
-         (hauteur >= TAILLE_MIN_CHUTE && largeur >= 10);
-};
-
-// Crée une chute avec une référence à la plaque d'origine
-const creerChute = (plaque, largeur, hauteur, x, y) => {
-  return {
-    largeur,
-    hauteur,
-    surface: largeur * hauteur,
-    plaqueOriginelle: {
-      murId: plaque.murId,
-      plaqueId: plaque.id,
-      plaqueDimensions: `${plaque.largeur}×${plaque.hauteur}cm`
-    },
-    positionRelative: { x, y },
-    utilisee: false,
-    id: `chute-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
-  };
-};
-
-// Identifie les chutes générées lors du découpage d'une plaque
-const identifierChutes = (plaque, dimensionsPlaque) => {
-  const chutes = [];
-  const ajoutees = new Set(); // Pour éviter les doublons
-  
-  // Si la plaque a été ajustée (plus petite que les dimensions standards)
-  if (plaque.ajustementNecessaire) {
-    const largeurOriginale = plaque.orientation === 'normal' ? dimensionsPlaque.largeur : dimensionsPlaque.hauteur;
-    const hauteurOriginale = plaque.orientation === 'normal' ? dimensionsPlaque.hauteur : dimensionsPlaque.largeur;
-    
-    // Chute latérale (à droite de la plaque)
-    if (plaque.largeur < largeurOriginale) {
-      const largeurChute = largeurOriginale - plaque.largeur;
-      if (estReutilisable(largeurChute, plaque.hauteur)) {
-        const cle = `${largeurChute}-${plaque.hauteur}-droite`;
-        if (!ajoutees.has(cle)) {
-          chutes.push(creerChute(plaque, largeurChute, plaque.hauteur, plaque.largeur, 0));
-          ajoutees.add(cle);
-        }
-      }
-    }
-    
-    // Chute en bas de la plaque
-    if (plaque.hauteur < hauteurOriginale) {
-      const hauteurChute = hauteurOriginale - plaque.hauteur;
-      if (estReutilisable(plaque.largeur, hauteurChute)) {
-        const cle = `${plaque.largeur}-${hauteurChute}-bas`;
-        if (!ajoutees.has(cle)) {
-          chutes.push(creerChute(plaque, plaque.largeur, hauteurChute, 0, plaque.hauteur));
-          ajoutees.add(cle);
-        }
-      }
-      
-      // Chute en coin (en bas à droite si les deux dimensions sont ajustées)
-      if (plaque.largeur < largeurOriginale) {
-        const largeurChute = largeurOriginale - plaque.largeur;
-        if (estReutilisable(largeurChute, hauteurChute)) {
-          const cle = `${largeurChute}-${hauteurChute}-coin`;
-          if (!ajoutees.has(cle)) {
-            chutes.push(creerChute(plaque, largeurChute, hauteurChute, plaque.largeur, plaque.hauteur));
-            ajoutees.add(cle);
-          }
-        }
-      }
-    }
-  }
-  
-  // Pour chaque découpe d'ouverture, vérifier si les chutes autour sont réutilisables
-  // Note: cette partie est simplifiée, une version plus complexe pourrait identifier
-  // plus précisément les chutes autour des ouvertures irrégulières
-  plaque.decoupes.forEach(decoupe => {
-    const { xLocal, yLocal, largeur, hauteur } = decoupe;
-    
-    // Chutes possibles autour de la découpe
-    const zones = [
-      // Au-dessus de la découpe
-      { x: xLocal, y: 0, largeur: largeur, hauteur: yLocal },
-      // À gauche de la découpe
-      { x: 0, y: yLocal, largeur: xLocal, hauteur: hauteur },
-      // À droite de la découpe
-      { x: xLocal + largeur, y: yLocal, largeur: plaque.largeur - (xLocal + largeur), hauteur: hauteur },
-      // En-dessous de la découpe
-      { x: xLocal, y: yLocal + hauteur, largeur: largeur, hauteur: plaque.hauteur - (yLocal + hauteur) }
-    ];
-    
-    // Ajouter les chutes si elles sont assez grandes
-    zones.forEach(zone => {
-      if (zone.largeur > 0 && zone.hauteur > 0 && estReutilisable(zone.largeur, zone.hauteur)) {
-        const cle = `${zone.largeur}-${zone.hauteur}-${zone.x}-${zone.y}`;
-        if (!ajoutees.has(cle)) {
-          chutes.push(creerChute(plaque, zone.largeur, zone.hauteur, zone.x, zone.y));
-          ajoutees.add(cle);
-        }
-      }
-    });
-  });
-  
-  return chutes;
-};
-
-// Cherche une chute adaptée pour une plaque donnée
-const trouverChuteAdaptee = (largeur, hauteur) => {
-  // Trier les chutes par proximité de taille (pour minimiser le gaspillage)
-  const chutesTriees = [...chutesDisponibles]
-    .filter(chute => !chute.utilisee && chute.largeur >= largeur && chute.hauteur >= hauteur)
-    .sort((a, b) => {
-      // Calculer le gaspillage pour chaque chute
-      const gaspillageA = (a.largeur * a.hauteur) - (largeur * hauteur);
-      const gaspillageB = (b.largeur * b.hauteur) - (largeur * hauteur);
-      // Privilégier le gaspillage minimal
-      return gaspillageA - gaspillageB;
-    });
-  
-  // Retourner la meilleure chute si elle existe
-  return chutesTriees.length > 0 ? chutesTriees[0] : null;
-};
-
-// Calculer la disposition optimale des plaques pour un mur
-export const optimiserPlacement = (mur, dimensionsPlaque, ouvertures, utiliserChutes = true) => {
+// Calcule la disposition optimale des plaques pour un mur
+export const optimiserPlacement = (mur, dimensionsPlaque, ouvertures) => {
   const { largeur: murLargeur, hauteur: murHauteur } = mur;
   const { largeur: plaqueLargeur, hauteur: plaqueHauteur } = dimensionsPlaque;
   
@@ -189,14 +64,14 @@ export const optimiserPlacement = (mur, dimensionsPlaque, ouvertures, utiliserCh
   const plaquesEnLargeur = meilleurConfig.plaquesEnLargeur;
   const plaquesEnHauteur = meilleurConfig.plaquesEnHauteur;
   
-  // Générer les plaques
+  // Générer les plaques - ATTENTION: avec origine en bas à gauche
   const plaques = [];
-  const chutesUtilisees = [];
-  const nouvellePlaquesStandard = []; // Plaques pleines (non issues de chutes)
+  let chutesReutilisables = [];
   
   for (let y = 0; y < plaquesEnHauteur; y++) {
     for (let x = 0; x < plaquesEnLargeur; x++) {
       const xPos = x * largeurEffective;
+      // Pour l'origine en bas à gauche, on commence par y=0 en bas
       const yPos = y * hauteurEffective;
       
       // Calculer les dimensions réelles de cette plaque (peut être plus petite si c'est une plaque de bord)
@@ -215,27 +90,14 @@ export const optimiserPlacement = (mur, dimensionsPlaque, ouvertures, utiliserCh
         
         // N'ajouter la plaque que si elle n'est pas entièrement couverte par une ouverture
         if (!entierementCouverte) {
-          let chuteUtilisee = null;
-          
-          // Si on utilise les chutes disponibles, chercher une chute adaptée
-          if (utiliserChutes) {
-            chuteUtilisee = trouverChuteAdaptee(largeurReelle, hauteurReelle);
-          }
-          
-          const plaqueId = `plaque-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
           const plaque = {
-            id: plaqueId,
             x: xPos,
             y: yPos,
             largeur: largeurReelle,
             hauteur: hauteurReelle,
             orientation: orientationFinale,
             ajustementNecessaire: largeurReelle < largeurEffective || hauteurReelle < hauteurEffective,
-            decoupes: [],
-            // Nouveau: infos sur la chute utilisée
-            issueDeChute: chuteUtilisee !== null,
-            chuteId: chuteUtilisee ? chuteUtilisee.id : null,
-            chuteOriginelle: chuteUtilisee ? chuteUtilisee.plaqueOriginelle : null
+            decoupes: []
           };
           
           // Ajouter les découpes pour les ouvertures
@@ -252,81 +114,101 @@ export const optimiserPlacement = (mur, dimensionsPlaque, ouvertures, utiliserCh
             }
           });
           
-          // Si on a utilisé une chute, la marquer comme utilisée
-          if (chuteUtilisee) {
-            chuteUtilisee.utilisee = true;
-            chutesUtilisees.push(chuteUtilisee);
-          } else {
-            // Sinon ajouter aux nouvelles plaques standards utilisées
-            nouvellePlaquesStandard.push(plaque);
-          }
-          
           plaques.push(plaque);
+          
+          // Calculer les chutes si des ajustements sont nécessaires
+          if (plaque.ajustementNecessaire) {
+            const chutesPlaque = calculerChutes(plaque, largeurEffective, hauteurEffective);
+            chutesReutilisables = [...chutesReutilisables, ...chutesPlaque];
+          }
         }
       }
     }
   }
   
-  // Identifier les nouvelles chutes générées
-  const nouvellesChutes = [];
-  [...nouvellePlaquesStandard].forEach(plaque => {
-    const chutesPlaque = identifierChutes(plaque, dimensionsPlaque);
-    nouvellesChutes.push(...chutesPlaque);
-  });
+  // Filtrer les chutes réutilisables (surface minimale de 2500 cm² ou 0.25m²)
+  const SURFACE_MINIMALE_REUTILISABLE = 2500; // en cm²
+  chutesReutilisables = chutesReutilisables
+    .filter(chute => chute.surface >= SURFACE_MINIMALE_REUTILISABLE)
+    .sort((a, b) => b.surface - a.surface); // Trier par surface décroissante
   
-  // Ajouter les nouvelles chutes au stock disponible
-  if (utiliserChutes) {
-    chutesDisponibles = [
-      ...chutesDisponibles.filter(c => !c.utilisee), // Garder les chutes non utilisées
-      ...nouvellesChutes // Ajouter les nouvelles chutes
-    ].sort((a, b) => b.surface - a.surface); // Trier par surface décroissante
-  }
+  // Calculer le nombre de plaques standard nécessaires en se basant sur la surface
+  const surfacePlaque = plaqueLargeur * plaqueHauteur;
+  const nbPlaquesTheoriqueSurface = Math.ceil(surfaceUtile / surfacePlaque);
   
-  // Calculer le nombre de plaques standard nécessaires
-  const nbPlaquesStandard = nouvellePlaquesStandard.length;
-  
-  // Calculer les économies réalisées grâce aux chutes
-  const economiesChutes = {
-    nbPlaquesEconomisees: chutesUtilisees.length,
-    surfaceEconomisee: chutesUtilisees.reduce((acc, c) => acc + c.surface, 0),
-    chutesPourCeMur: nouvellesChutes.length,
-    surfaceChutesGenerees: nouvellesChutes.reduce((acc, c) => acc + c.surface, 0),
-  };
+  // Le nombre de plaques final est le nombre de plaques générées
+  // (après avoir éliminé celles entièrement couvertes par des ouvertures)
+  const nbPlaques = Math.max(plaques.length, nbPlaquesTheoriqueSurface);
   
   return {
     plaques,
-    nbPlaques: nbPlaquesStandard, // Nombre de plaques complètes utilisées
-    nbChutesUtilisees: chutesUtilisees.length,
-    chutesUtilisees,
-    nouvellesChutes,
+    nbPlaques,
     surfaceUtile,
     orientation: orientationFinale,
-    economiesChutes
+    chutesReutilisables
   };
 };
 
-// Fonction pour optimiser tous les murs à la fois
-export const optimiserTousMurs = (murs, dimensionsPlaque, utiliserChutes = true) => {
-  // Réinitialiser les chutes disponibles pour un nouveau calcul global
-  if (!utiliserChutes) {
-    chutesDisponibles = [];
+// Fonction pour calculer les chutes d'une plaque ajustée
+const calculerChutes = (plaque, largeurOrigine, hauteurOrigine) => {
+  const chutes = [];
+  
+  // Si la largeur a été ajustée, il y a une chute sur le côté droit
+  if (plaque.largeur < largeurOrigine) {
+    const chuteLaterale = {
+      x: plaque.x + plaque.largeur,
+      y: plaque.y,
+      largeur: largeurOrigine - plaque.largeur,
+      hauteur: plaque.hauteur,
+      surface: (largeurOrigine - plaque.largeur) * plaque.hauteur
+    };
+    chutes.push(chuteLaterale);
   }
   
+  // Si la hauteur a été ajustée, il y a une chute au-dessus
+  if (plaque.hauteur < hauteurOrigine) {
+    const chuteHauteur = {
+      x: plaque.x,
+      y: plaque.y + plaque.hauteur,
+      largeur: plaque.largeur,
+      hauteur: hauteurOrigine - plaque.hauteur,
+      surface: plaque.largeur * (hauteurOrigine - plaque.hauteur)
+    };
+    chutes.push(chuteHauteur);
+  }
+  
+  // Si les deux dimensions ont été ajustées, il y a une chute en coin
+  if (plaque.largeur < largeurOrigine && plaque.hauteur < hauteurOrigine) {
+    const chuteCoin = {
+      x: plaque.x + plaque.largeur,
+      y: plaque.y + plaque.hauteur,
+      largeur: largeurOrigine - plaque.largeur,
+      hauteur: hauteurOrigine - plaque.hauteur,
+      surface: (largeurOrigine - plaque.largeur) * (hauteurOrigine - plaque.hauteur)
+    };
+    chutes.push(chuteCoin);
+  }
+  
+  return chutes;
+};
+
+// Fonction pour optimiser tous les murs à la fois
+export const optimiserTousMurs = (murs, dimensionsPlaque) => {
   let toutesLesPlaques = [];
   let surfaceUtileTotale = 0;
   let nbPlaquesTotal = 0;
-  let nbChutesUtiliseesTotal = 0;
-  let surfaceChutesTotal = 0;
-  let surfaceChutesGenerees = 0;
+  let toutesLesChutes = [];
   const resultatsParMur = [];
   
   // Pour chaque mur, utiliser l'algorithme d'optimisation
-  murs.forEach((mur, index) => {
+  murs.forEach(mur => {
+    // Créer une copie des ouvertures pour ne pas modifier les originales
+    const ouverturesCopiees = mur.ouvertures.map(o => ({...o}));
+    
     const resultatOptimisation = optimiserPlacement(
       { largeur: mur.largeur, hauteur: mur.hauteur },
       dimensionsPlaque,
-      mur.ouvertures,
-      utiliserChutes
+      ouverturesCopiees
     );
     
     // Ajouter l'identifiant du mur à chaque plaque
@@ -341,31 +223,35 @@ export const optimiserTousMurs = (murs, dimensionsPlaque, utiliserChutes = true)
     const surfaceOuvertures = mur.ouvertures.reduce((acc, o) => acc + (o.largeur * o.hauteur), 0);
     const surfaceUtileMur = surfaceMur - surfaceOuvertures;
     
+    // Récupérer les chutes pour ce mur
+    const chutesAvecIdMur = resultatOptimisation.chutesReutilisables.map(chute => ({
+      ...chute,
+      murId: mur.id,
+      murNom: mur.nom
+    }));
+    
     // Stocker les résultats pour ce mur
     resultatsParMur.push({
       murId: mur.id,
       murNom: mur.nom,
       nbPlaques: resultatOptimisation.nbPlaques,
-      nbChutesUtilisees: resultatOptimisation.nbChutesUtilisees,
       surfaceUtile: surfaceUtileMur,
       dimensions: `${mur.largeur} × ${mur.hauteur} cm`,
       nbOuvertures: mur.ouvertures.length,
-      economiesChutes: resultatOptimisation.economiesChutes
+      nbChutes: chutesAvecIdMur.length
     });
     
     // Ajouter les plaques au total
     toutesLesPlaques = [...toutesLesPlaques, ...plaquesAvecId];
+    
+    // Ajouter les chutes au total
+    toutesLesChutes = [...toutesLesChutes, ...chutesAvecIdMur];
     
     // Ajouter la surface utile au total
     surfaceUtileTotale += surfaceUtileMur;
     
     // Ajouter le nombre de plaques au total
     nbPlaquesTotal += resultatOptimisation.nbPlaques;
-    nbChutesUtiliseesTotal += resultatOptimisation.nbChutesUtilisees;
-    
-    // Comptabiliser les chutes générées et utilisées
-    surfaceChutesTotal += resultatOptimisation.economiesChutes.surfaceEconomisee;
-    surfaceChutesGenerees += resultatOptimisation.economiesChutes.surfaceChutesGenerees;
   });
   
   // Calculer la surface totale des plaques standard
@@ -375,18 +261,8 @@ export const optimiserTousMurs = (murs, dimensionsPlaque, utiliserChutes = true)
   // Calculer le pourcentage de chutes
   const pourcentageChutes = Math.max(0, ((surfaceTotalePlaques - surfaceUtileTotale) / surfaceTotalePlaques) * 100);
   
-  // Nouvelles statistiques sur les chutes
-  const economieGlobale = {
-    nbPlaquesStandard: nbPlaquesTotal,
-    nbChutesUtilisees: nbChutesUtiliseesTotal,
-    pourcentageEconomie: nbChutesUtiliseesTotal > 0 
-      ? (nbChutesUtiliseesTotal / (nbPlaquesTotal + nbChutesUtiliseesTotal)) * 100 
-      : 0,
-    surfaceChutesUtilisees: surfaceChutesTotal,
-    surfaceChutesDisponibles: chutesDisponibles.filter(c => !c.utilisee).reduce((acc, c) => acc + c.surface, 0),
-    nbChutesDisponibles: chutesDisponibles.filter(c => !c.utilisee).length,
-    surfaceChutesGenerees: surfaceChutesGenerees
-  };
+  // Calculer la surface totale des chutes réutilisables
+  const surfaceTotaleChutes = toutesLesChutes.reduce((acc, chute) => acc + chute.surface, 0);
   
   return {
     plaques: toutesLesPlaques,
@@ -395,12 +271,17 @@ export const optimiserTousMurs = (murs, dimensionsPlaque, utiliserChutes = true)
     surfaceUtile: surfaceUtileTotale,
     pourcentageChutes: pourcentageChutes,
     murDetails: resultatsParMur,
-    economieChutes: economieGlobale,
-    chutesDisponibles: chutesDisponibles.filter(c => !c.utilisee) // Ne retourner que les chutes non utilisées
+    chutesReutilisables: {
+      nombre: toutesLesChutes.length,
+      surface: surfaceTotaleChutes,
+      surfaceEnM2: surfaceTotaleChutes / 10000, // Conversion en m²
+      details: toutesLesChutes
+    }
   };
 };
 
 // Vérifie si deux rectangles se chevauchent
+// Fonctionne avec origine en bas à gauche
 const rectanglesSeChevaucent = (rect1, rect2) => {
   return !(
     rect1.x + rect1.largeur <= rect2.x ||
@@ -411,6 +292,7 @@ const rectanglesSeChevaucent = (rect1, rect2) => {
 };
 
 // Vérifie si un rectangle contient entièrement un autre rectangle
+// Fonctionne avec origine en bas à gauche
 const rectangleContient = (rectExterieur, rectInterieur) => {
   return (
     rectInterieur.x >= rectExterieur.x &&
@@ -421,6 +303,7 @@ const rectangleContient = (rectExterieur, rectInterieur) => {
 };
 
 // Calcule l'intersection entre deux rectangles
+// Fonctionne avec origine en bas à gauche
 const calculerIntersection = (rect1, rect2) => {
   const x = Math.max(rect1.x, rect2.x);
   const y = Math.max(rect1.y, rect2.y);
