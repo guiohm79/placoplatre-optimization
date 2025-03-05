@@ -12,6 +12,17 @@ function ResultatsGlobaux({ resultat, murs }) {
     return Math.ceil(surfaceUtileMur / surfacePlaqueTotale);
   };
   
+  // Calculer l'économie totale
+  const economieChutes = resultat.economieChutes || {
+    nbChutesUtilisees: 0,
+    pourcentageEconomie: 0,
+    surfaceChutesUtilisees: 0,
+    nbChutesDisponibles: 0,
+    surfaceChutesDisponibles: 0
+  };
+  
+  const economieEnEuros = (economieChutes.nbChutesUtilisees * 15).toFixed(2); // Estimation: 15€ par plaque
+  
   return (
     <div className="card">
       <div className="card-header">
@@ -20,9 +31,16 @@ function ResultatsGlobaux({ resultat, murs }) {
       
       <div className="stats-container">
         <div className="stat-item">
-          <div className="stat-label">Total des plaques nécessaires:</div>
+          <div className="stat-label">Total des plaques entières:</div>
           <div className="stat-value highlight">{resultat.nbPlaques}</div>
         </div>
+        
+        {economieChutes.nbChutesUtilisees > 0 && (
+          <div className="stat-item">
+            <div className="stat-label">Chutes réutilisées:</div>
+            <div className="stat-value highlight-success">{economieChutes.nbChutesUtilisees}</div>
+          </div>
+        )}
         
         <div className="stat-item">
           <div className="stat-label">Surface totale des plaques:</div>
@@ -38,13 +56,33 @@ function ResultatsGlobaux({ resultat, murs }) {
           <div className="stat-label">Pourcentage de chutes:</div>
           <div className="stat-value">{resultat.pourcentageChutes.toFixed(2)}%</div>
         </div>
+        
+        {economieChutes.nbChutesUtilisees > 0 && (
+          <div className="stat-item">
+            <div className="stat-label">Économie réalisée:</div>
+            <div className="stat-value highlight-success">~{economieEnEuros} €</div>
+          </div>
+        )}
       </div>
+      
+      {economieChutes.nbChutesDisponibles > 0 && (
+        <div className="chutes-disponibles">
+          <h3>Chutes disponibles</h3>
+          <p>
+            Il vous reste <strong>{economieChutes.nbChutesDisponibles}</strong> chutes réutilisables 
+            (environ <strong>{Math.floor(economieChutes.surfaceChutesDisponibles / 10000)} m²</strong>).
+            Conservez-les pour vos prochains projets !
+          </p>
+        </div>
+      )}
       
       <div className="detail-section">
         <h3>Détail par mur</h3>
         
         {murs.map(mur => {
-          const nbPlaquesMur = calculerPlaquesParMur(mur);
+          const murDetail = resultat.murDetails?.find(m => m.murId === mur.id) || {};
+          const nbPlaquesMur = murDetail.nbPlaques || calculerPlaquesParMur(mur);
+          const nbChutesUtilisees = murDetail.nbChutesUtilisees || 0;
           const surfaceMur = mur.largeur * mur.hauteur;
           const surfaceOuvertures = mur.ouvertures.reduce((acc, o) => acc + (o.largeur * o.hauteur), 0);
           const surfaceUtileMur = surfaceMur - surfaceOuvertures;
@@ -54,7 +92,10 @@ function ResultatsGlobaux({ resultat, murs }) {
               <div className="mur-detail-header">
                 <h4>{mur.nom}</h4>
                 <div className="mur-detail-stats">
-                  <span>{nbPlaquesMur} plaques nécessaires</span>
+                  <span>{nbPlaquesMur} plaques entières</span>
+                  {nbChutesUtilisees > 0 && (
+                    <span className="tag tag-success">+ {nbChutesUtilisees} chutes</span>
+                  )}
                 </div>
               </div>
               
@@ -68,6 +109,12 @@ function ResultatsGlobaux({ resultat, murs }) {
                 <div className="mur-detail-info">
                   <span>Ouvertures: {mur.ouvertures.length}</span>
                 </div>
+                
+                {murDetail.economiesChutes && murDetail.economiesChutes.chutesPourCeMur > 0 && (
+                  <div className="mur-detail-info tag tag-info">
+                    <span>Ce mur génère {murDetail.economiesChutes.chutesPourCeMur} chutes réutilisables</span>
+                  </div>
+                )}
               </div>
             </div>
           );

@@ -230,38 +230,42 @@ function MurVisualisation({
           {plaques.map((plaque, index) => (
             <div
               key={`plaque-${index}`}
-              className={`plaque ${plaque.ajustementNecessaire ? 'ajustement' : ''}`}
+              className={`plaque ${plaque.ajustementNecessaire ? 'ajustement' : ''} ${plaque.issueDeChute ? 'issueDeChuteReuse' : ''}`}
               style={{
                 left: plaque.x * zoom,
-                // Conversion pour afficher avec origine en bas à gauche
-                top: convertirYVersBasGauche(plaque.y, plaque.hauteur) * zoom,
+                top: plaque.y * zoom,
                 width: plaque.largeur * zoom,
                 height: plaque.hauteur * zoom,
                 cursor: 'pointer'
-              }}
-              onClick={() => handlePlaqueClick(plaque)}
-              onMouseOver={(e) => {
-                let tooltipText = `Plaque #${index+1}: ${plaque.largeur}×${plaque.hauteur}cm`;
-                
-                if (plaque.ajustementNecessaire) {
-                  tooltipText += `\nAjustement nécessaire: cette plaque doit être découpée`;
-                  tooltipText += `\nPlaque originale: ${plaque.orientation === 'normal' ? dimensionsPlaque.largeur : dimensionsPlaque.hauteur}×${plaque.orientation === 'normal' ? dimensionsPlaque.hauteur : dimensionsPlaque.largeur} cm`;
-                }
-                
-                if (plaque.decoupes && plaque.decoupes.length > 0) {
-                  tooltipText += '\nDécoupes nécessaires:';
-                  plaque.decoupes.forEach(d => {
-                    tooltipText += `\n- ${d.type || 'découpe'}: position (${d.xLocal || 0},${d.yLocal || 0}) cm, taille ${d.largeur}×${d.hauteur} cm`;
-                  });
-                } else {
-                  tooltipText += '\nAucune découpe pour ouverture n\'est nécessaire';
-                }
-                
-                tooltipText += '\nCliquez pour voir les détails de découpe';
-                
-                handleMouseOver(e, tooltipText);
-              }}
-              onMouseOut={handleMouseOut}
+                }}
+                onClick={() => handlePlaqueClick(plaque)}
+                onMouseOver={(e) => {
+                  let tooltipText = `Plaque #${index+1}: ${plaque.largeur}×${plaque.hauteur}cm`;
+                  
+                  if (plaque.issueDeChute) {
+                    tooltipText += `\n♻️ Cette plaque provient d'une chute réutilisée`;
+                    if (plaque.chuteOriginelle) {
+                      tooltipText += `\nChute issue de: ${plaque.chuteOriginelle.plaqueDimensions}`;
+                    }
+                  } else if (plaque.ajustementNecessaire) {
+                    tooltipText += `\nAjustement nécessaire: cette plaque doit être découpée`;
+                    tooltipText += `\nPlaque originale: ${plaque.orientation === 'normal' ? dimensionsPlaque.largeur : dimensionsPlaque.hauteur}×${plaque.orientation === 'normal' ? dimensionsPlaque.hauteur : dimensionsPlaque.largeur} cm`;
+                  }
+                  
+                  if (plaque.decoupes && plaque.decoupes.length > 0) {
+                    tooltipText += '\nDécoupes nécessaires:';
+                    plaque.decoupes.forEach(d => {
+                      tooltipText += `\n- ${d.type || 'découpe'}: position (${d.xLocal || 0},${d.yLocal || 0}) cm, taille ${d.largeur}×${d.hauteur} cm`;
+                    });
+                  } else {
+                    tooltipText += '\nAucune découpe pour ouverture n\'est nécessaire';
+                  }
+                  
+                  tooltipText += '\nCliquez pour voir les détails de découpe';
+                  
+                  handleMouseOver(e, tooltipText);
+                }}
+                onMouseOut={handleMouseOut}
             >
               <div className="plaque-numero">#{index+1}</div>
               

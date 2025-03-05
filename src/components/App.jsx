@@ -4,6 +4,7 @@ import PlaqueDimensionsForm from './PlaqueDimensionsForm';
 import MurForm from './MurForm';
 import MurVisualisation from './MurVisualisation';
 import { optimiserTousMurs } from '../utils/optimisation';
+import ToggleChutes from './ToggleChutes';
 import ResultatsGlobaux from './ResultatsGlobaux';
 import { validerDimensionsMur, validerOuverture } from '../utils/validators';
 import { Calculator, Download, Settings, Sun, Moon } from 'lucide-react';
@@ -44,6 +45,9 @@ function App() {
   // État pour le thème (clair/sombre)
   const [darkMode, setDarkMode] = useState(false);
 
+  // 2. Ajouter cet état avec les autres états (vers la ligne 48)
+  const [utiliserChutes, setUtiliserChutes] = useState(true);
+
   // État pour le mur actuellement sélectionné
   const [murSelectionneeId, setMurSelectionneeId] = useState(1);
   
@@ -73,8 +77,8 @@ function App() {
     return () => {
       window.onModifierOuverture = undefined;
     };
-  }, []);
-
+  }, [murs, murSelectionneeId, utiliserChutes]);
+  
   // Fonctions de conversion pour l'origine en bas à gauche
   const convertirYVersHaut = (y, hauteurMur, hauteurElement) => {
     return hauteurMur - y - hauteurElement;
@@ -242,60 +246,64 @@ function App() {
       alert("Veuillez corriger les erreurs avant de calculer l'optimisation");
       return;
     }
-    
+      // Utiliser l'algorithme réel d'optimisation avec le paramètre utiliserChutes
+    const resultatOptimisation = optimiserTousMurs(murs, plaqueDimensions, utiliserChutes);
+    setResultat(resultatOptimisation);
+  };
+
     // NOUVEAU : Convertir les coordonnées Y des ouvertures (du bas vers le haut)
-    const mursConvertisPourOptimisation = murs.map(mur => {
-      return {
-        ...mur,
-        ouvertures: mur.ouvertures.map(ouverture => {
+    //const mursConvertisPourOptimisation = murs.map(mur => {
+      //return {
+       // ...mur,
+       // ouvertures: mur.ouvertures.map(ouverture => {
           // Conversion de Y (du bas vers le haut pour l'algo)
-          const yConverti = mur.hauteur - ouverture.y - ouverture.hauteur;
-          return { ...ouverture, y: yConverti };
-        })
-      };
-    });
+        //  const yConverti = mur.hauteur - ouverture.y - ouverture.hauteur;
+         // return { ...ouverture, y: yConverti };
+       // })
+      //};
+   // });
     
     // Utiliser l'algorithme réel d'optimisation avec les coords converties
-    const resultatOptimisation = optimiserTousMurs(mursConvertisPourOptimisation, plaqueDimensions);
+   // const resultatOptimisation = optimiserTousMurs(mursConvertisPourOptimisation, plaqueDimensions);
     
     // NOUVEAU : Reconvertir les coordonnées Y des plaques dans le résultat (du haut vers le bas)
-    const resultatReconverti = {
-      ...resultatOptimisation,
-      plaques: resultatOptimisation.plaques.map(plaque => {
-        const murCorrespondant = murs.find(m => m.id === plaque.murId);
-        if (!murCorrespondant) return plaque;
+   // const resultatReconverti = {
+    //  ...resultatOptimisation,
+     // plaques: resultatOptimisation.plaques.map(plaque => {
+      //  const murCorrespondant = murs.find(m => m.id === plaque.murId);
+      //  if (!murCorrespondant) return plaque;
         
         // Reconversion de Y (du haut vers le bas pour l'affichage)
-        const yReconverti = murCorrespondant.hauteur - plaque.y - plaque.hauteur;
+      //  const yReconverti = murCorrespondant.hauteur - plaque.y - plaque.hauteur;
         
         // Aussi convertir les coordonnées des découpes si nécessaire
-        let decoupesReconverties = plaque.decoupes;
-        if (plaque.decoupes && plaque.decoupes.length > 0) {
-          decoupesReconverties = plaque.decoupes.map(decoupe => {
+      //  let decoupesReconverties = plaque.decoupes;
+       // if (plaque.decoupes && plaque.decoupes.length > 0) {
+       //   decoupesReconverties = plaque.decoupes.map(decoupe => {
             // Si les coordonnées sont relatives à la plaque (yLocal) on les convertit
-            if (decoupe.yLocal !== undefined) {
-              const yLocalReconverti = plaque.hauteur - decoupe.yLocal - decoupe.hauteur;
-              return { ...decoupe, yLocal: yLocalReconverti };
-            }
+        //    if (decoupe.yLocal !== undefined) {
+         //     const yLocalReconverti = plaque.hauteur - decoupe.yLocal - decoupe.hauteur;
+         //     return { ...decoupe, yLocal: yLocalReconverti };
+        //    }
             // Si les coordonnées sont absolues, on les convertit aussi
-            else if (decoupe.y !== undefined) {
-              const yReconverti = murCorrespondant.hauteur - decoupe.y - decoupe.hauteur;
-              return { ...decoupe, y: yReconverti };
-            }
-            return decoupe;
-          });
-        }
+        //    else if (decoupe.y !== undefined) {
+         //     const yReconverti = murCorrespondant.hauteur - decoupe.y - decoupe.hauteur;
+          //    return { ...decoupe, y: yReconverti };
+          //  }
+          //  return decoupe;
+        //  });
+       // }
         
-        return { 
-          ...plaque, 
-          y: yReconverti, 
-          decoupes: decoupesReconverties 
-        };
-      })
-    };
+     //   return { 
+       //   ...plaque, 
+        //  y: yReconverti, 
+        //  decoupes: decoupesReconverties 
+      //  };
+    //  })
+   // };
     
-    setResultat(resultatReconverti);
-  };
+   // setResultat(resultatReconverti);
+ // };
   
   // Fonction provisoire pour exporter en PDF
   const exporterPDF = () => {
@@ -333,17 +341,24 @@ function App() {
             erreurs={erreurs}
           />
           
-          <div className="action-buttons">
-            <button className="btn btn-success" onClick={optimiserDecoupes}>
-              <Calculator size={18} style={{ marginRight: '8px' }} />
-              Calculer l'optimisation
-            </button>
-            
-            <button className="btn btn-secondary" onClick={exporterPDF}>
-              <Download size={18} style={{ marginRight: '8px' }} />
-              Exporter en PDF
-            </button>
-          </div>
+          <div className="action-buttons-container">
+            <ToggleChutes 
+              utiliserChutes={utiliserChutes} 
+              onToggle={setUtiliserChutes}
+           />
+  
+        <div className="action-buttons">
+          <button className="btn btn-success" onClick={optimiserDecoupes}>
+            <Calculator size={18} style={{ marginRight: '8px' }} />
+            Calculer l'optimisation
+          </button>
+    
+        <button className="btn btn-secondary" onClick={exporterPDF}>
+          <Download size={18} style={{ marginRight: '8px' }} />
+          Exporter en PDF
+        </button>
+      </div>
+</div>
         </div>
         
         <div className="right-panel">

@@ -426,3 +426,135 @@
   flex-direction: column;
   gap: var(--spacing-lg);
 }
+
+/* Ajoutez ces styles dans src/styles/visualisation.css */
+
+/* Marquage pour les plaques issues de chutes */
+.plaque.issueDeChuteReuse {
+  background-color: rgba(6, 214, 160, 0.3);
+  border: 2px solid var(--success-color);
+}
+
+.plaque.issueDeChuteReuse .plaque-numero {
+  color: var(--success-color);
+}
+
+.plaque.issueDeChuteReuse::before {
+  content: "♻️ Chute réutilisée";
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(255, 255, 255, 0.9);
+  color: var(--success-color);
+  font-size: 0.7rem;
+  padding: 0.2rem 0.4rem;
+  border-radius: var(--border-radius-sm);
+  white-space: nowrap;
+}
+
+.dark-mode .plaque.issueDeChuteReuse::before {
+  background-color: rgba(44, 48, 53, 0.9);
+}
+
+/* Tableau des chutes disponibles */
+.chutes-disponibles {
+  background-color: var(--success-light);
+  border-radius: var(--border-radius);
+  padding: var(--spacing-md);
+  margin-top: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+  border-left: 3px solid var(--success-color);
+}
+
+.dark-mode .chutes-disponibles {
+  background-color: var(--success-light);
+}
+
+.chutes-disponibles h3 {
+  color: var(--success-color);
+  margin-top: 0;
+  margin-bottom: var(--spacing-xs);
+  font-size: var(--font-size-medium);
+}
+
+.chutes-disponibles p {
+  margin: 0;
+  color: var(--dark-color);
+}
+
+.dark-mode .chutes-disponibles p {
+  color: var(--light-color);
+}
+
+/* Récupération-chutes panel */
+.recuperation-chutes {
+  margin-top: var(--spacing-lg);
+}
+
+.recuperation-chutes-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-sm);
+}
+
+.recuperation-chutes-toggle {
+  background: none;
+  border: none;
+  display: flex;
+  align-items: center;
+  color: var(--primary-color);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+}
+
+.recuperation-chutes-toggle svg {
+  margin-right: var(--spacing-xs);
+}
+
+.recuperation-chutes-content {
+  background-color: var(--gray-100);
+  border-radius: var(--border-radius);
+  padding: var(--spacing-md);
+  animation: slideDown 0.3s ease-out;
+}
+
+.dark-mode .recuperation-chutes-content {
+  background-color: var(--gray-800);
+}
+
+.tag {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  margin-left: 8px;
+  font-weight: 500;
+}
+
+.tag-success {
+  background-color: var(--success-light);
+  color: var(--success-color);
+}
+
+.tag-info {
+  background-color: var(--info-light);
+  color: var(--info-color);
+}
+
+.highlight-success {
+  color: var(--success-color);
+  font-weight: var(--font-weight-bold);
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
