@@ -10,6 +10,9 @@ import { validerDimensionsMur, validerOuverture } from '../utils/validators';
 import { Calculator, Download, Settings, Sun, Moon } from 'lucide-react';
 import '../styles/main.css';
 import '../styles/components.css';
+import { exporterResultatsEnPDF } from '../utils/pdfExport';
+import PdfPreviewModal from './PdfPreviewModal';
+import '../styles/pdfExport.css';
 
 function App() {
   // État pour les dimensions des plaques disponibles
@@ -59,6 +62,10 @@ function App() {
   
   // État pour le résultat de l'optimisation
   const [resultat, setResultat] = useState(null);
+
+
+ // pdf
+  const [showPdfPreview, setShowPdfPreview] = useState(false);
   
   // Effet pour appliquer le thème
   useEffect(() => {
@@ -250,64 +257,42 @@ function App() {
     const resultatOptimisation = optimiserTousMurs(murs, plaqueDimensions, utiliserChutes);
     setResultat(resultatOptimisation);
   };
-
-    // NOUVEAU : Convertir les coordonnées Y des ouvertures (du bas vers le haut)
-    //const mursConvertisPourOptimisation = murs.map(mur => {
-      //return {
-       // ...mur,
-       // ouvertures: mur.ouvertures.map(ouverture => {
-          // Conversion de Y (du bas vers le haut pour l'algo)
-        //  const yConverti = mur.hauteur - ouverture.y - ouverture.hauteur;
-         // return { ...ouverture, y: yConverti };
-       // })
-      //};
-   // });
-    
-    // Utiliser l'algorithme réel d'optimisation avec les coords converties
-   // const resultatOptimisation = optimiserTousMurs(mursConvertisPourOptimisation, plaqueDimensions);
-    
-    // NOUVEAU : Reconvertir les coordonnées Y des plaques dans le résultat (du haut vers le bas)
-   // const resultatReconverti = {
-    //  ...resultatOptimisation,
-     // plaques: resultatOptimisation.plaques.map(plaque => {
-      //  const murCorrespondant = murs.find(m => m.id === plaque.murId);
-      //  if (!murCorrespondant) return plaque;
-        
-        // Reconversion de Y (du haut vers le bas pour l'affichage)
-      //  const yReconverti = murCorrespondant.hauteur - plaque.y - plaque.hauteur;
-        
-        // Aussi convertir les coordonnées des découpes si nécessaire
-      //  let decoupesReconverties = plaque.decoupes;
-       // if (plaque.decoupes && plaque.decoupes.length > 0) {
-       //   decoupesReconverties = plaque.decoupes.map(decoupe => {
-            // Si les coordonnées sont relatives à la plaque (yLocal) on les convertit
-        //    if (decoupe.yLocal !== undefined) {
-         //     const yLocalReconverti = plaque.hauteur - decoupe.yLocal - decoupe.hauteur;
-         //     return { ...decoupe, yLocal: yLocalReconverti };
-        //    }
-            // Si les coordonnées sont absolues, on les convertit aussi
-        //    else if (decoupe.y !== undefined) {
-         //     const yReconverti = murCorrespondant.hauteur - decoupe.y - decoupe.hauteur;
-          //    return { ...decoupe, y: yReconverti };
-          //  }
-          //  return decoupe;
-        //  });
-       // }
-        
-     //   return { 
-       //   ...plaque, 
-        //  y: yReconverti, 
-        //  decoupes: decoupesReconverties 
-      //  };
-    //  })
-   // };
-    
-   // setResultat(resultatReconverti);
- // };
   
-  // Fonction provisoire pour exporter en PDF
-  const exporterPDF = () => {
-    alert("Fonctionnalité d'export en PDF à implémenter");
+  // Fonction pour exporter en PDF
+  const exporterPDF = async () => {
+    // Vérifier si on a des résultats à exporter
+    if (!resultat) {
+      alert("Veuillez d'abord calculer l'optimisation avant d'exporter en PDF");
+      return;
+    }
+    
+    // Afficher la prévisualisation du PDF
+    setShowPdfPreview(true);
+  };
+
+  const handleExportPdf = async () => {
+    try {
+      // Fermer la prévisualisation
+      setShowPdfPreview(false);
+      
+      // Afficher un message de chargement
+      const loadingMessage = document.createElement('div');
+      loadingMessage.className = 'loading-message';
+      loadingMessage.textContent = 'Génération du PDF en cours...';
+      document.body.appendChild(loadingMessage);
+      
+      // Exporter en PDF
+      const nomFichier = await exporterResultatsEnPDF(resultat, murs, plaqueDimensions);
+      
+      // Supprimer le message de chargement
+      document.body.removeChild(loadingMessage);
+      
+      // Notifier l'utilisateur
+      alert(`Export PDF réussi ! Fichier : ${nomFichier}`);
+    } catch (error) {
+      console.error("Erreur lors de l'export PDF :", error);
+      alert("Une erreur est survenue lors de l'export PDF. Veuillez réessayer.");
+    }
   };
   
   // Basculer entre mode clair/sombre
@@ -353,10 +338,10 @@ function App() {
             Calculer l'optimisation
           </button>
     
-        <button className="btn btn-secondary" onClick={exporterPDF}>
-          <Download size={18} style={{ marginRight: '8px' }} />
-          Exporter en PDF
-        </button>
+          <button className="btn btn-secondary btn-export-pdf" onClick={exporterPDF}>
+            <Download size={18} className="icon" />
+            Exporter en PDF
+          </button>
       </div>
 </div>
         </div>
@@ -396,6 +381,14 @@ function App() {
           {resultat && <ResultatsGlobaux resultat={resultat} murs={murs} />}
         </div>
       </div>
+        <PdfPreviewModal
+          isOpen={showPdfPreview}
+          onClose={() => setShowPdfPreview(false)}
+          resultat={resultat}
+          murs={murs}
+          dimensionsPlaque={plaqueDimensions}
+          onExport={handleExportPdf}
+        />
     </div>
   );
 }

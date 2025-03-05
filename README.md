@@ -45,7 +45,7 @@ npm start
 - [ ] Ajouter un mode d'édition collaboratif en temps réel
 
 ### Amélioration de l'algorithme d'optimisation
-- [ ] Optimiser la gestion des chutes réutilisables
+- [X] Optimiser la gestion des chutes réutilisables
 - [ ] Ajouter des contraintes de pose (joints décalés, etc.)
 - [ ] Permettre la rotation des plaques à 90° pour les découpes complexes
 - [ ] Intégrer des règles métier supplémentaires (espacement des joints, etc.)

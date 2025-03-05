@@ -1,0 +1,208 @@
+/* src/styles/pdfExport.css */
+
+/* Styles pour le modal de prévisualisation PDF */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: var(--z-modal);
+    animation: fadeIn 0.2s ease-out;
+  }
+  
+  .pdf-preview-modal {
+    width: 90%;
+    max-width: 900px;
+    max-height: 90vh;
+    overflow-y: auto;
+    background-color: var(--white);
+    border-radius: var(--card-border-radius);
+    box-shadow: var(--shadow-lg);
+    display: flex;
+    flex-direction: column;
+    animation: slideIn 0.3s ease-out;
+  }
+  
+  .dark-mode .pdf-preview-modal {
+    background-color: var(--gray-800);
+  }
+  
+  /* Animation pour le modal */
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  
+  @keyframes slideIn {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  /* Message de chargement pendant l'export */
+  .loading-message {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(58, 134, 255, 0.9);
+    color: white;
+    padding: 20px 30px;
+    border-radius: var(--border-radius);
+    font-weight: var(--font-weight-medium);
+    box-shadow: var(--shadow);
+    z-index: 9999;
+    animation: pulse 1.5s infinite;
+  }
+  
+  @keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(58, 134, 255, 0.7); }
+    70% { box-shadow: 0 0 0 10px rgba(58, 134, 255, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(58, 134, 255, 0); }
+  }
+  
+  /* Prévisualisation du PDF */
+  .pdf-preview {
+    flex: 2;
+    overflow: hidden;
+    border: 1px solid var(--gray-300);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-sm);
+  }
+  
+  .dark-mode .pdf-preview {
+    border-color: var(--gray-700);
+  }
+  
+  .pdf-page {
+    width: 100%;
+    min-height: 500px;
+    padding: 40px;
+    background-color: white;
+    color: black;
+    position: relative;
+    overflow-y: auto;
+    font-family: Arial, sans-serif;
+  }
+  
+  .pdf-page h1 {
+    color: var(--primary-color);
+    font-size: 24px;
+    margin-top: 0;
+    margin-bottom: 8px;
+    text-align: center;
+  }
+  
+  .pdf-date {
+    font-size: 14px;
+    color: var(--gray-600);
+    margin-bottom: 24px;
+    text-align: center;
+  }
+  
+  .pdf-section {
+    margin-bottom: 20px;
+  }
+  
+  .pdf-section h2 {
+    color: var(--primary-color);
+    font-size: 18px;
+    margin-bottom: 10px;
+    border-bottom: 1px solid var(--gray-300);
+    padding-bottom: 5px;
+  }
+  
+  .pdf-section div, .pdf-section p {
+    margin-bottom: 5px;
+    font-size: 14px;
+  }
+  
+  .pdf-section ul {
+    margin-top: 5px;
+    padding-left: 20px;
+  }
+  
+  .pdf-section li {
+    margin-bottom: 5px;
+    font-size: 14px;
+  }
+  
+  .pdf-page-number {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    font-size: 12px;
+    color: var(--gray-600);
+  }
+  
+  /* Options d'export */
+  .pdf-options {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  .option-group, .format-group {
+    background-color: var(--gray-100);
+    padding: 15px;
+    border-radius: var(--border-radius);
+  }
+  
+  .dark-mode .option-group, .dark-mode .format-group {
+    background-color: var(--gray-700);
+  }
+  
+  .option-group h3, .format-group h3 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-size: 16px;
+    color: var(--primary-color);
+  }
+  
+  .option-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  
+  .option-row input {
+    margin-right: 8px;
+  }
+  
+  /* Pour les écrans plus petits, superposer au lieu de côte à côte */
+  @media (max-width: 768px) {
+    .modal-content {
+      flex-direction: column;
+    }
+    
+    .pdf-preview, .pdf-options {
+      width: 100%;
+    }
+  }
+  
+  /* Style du bouton d'export PDF dans l'application */
+  .btn-export-pdf {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition-speed);
+  }
+  
+  .btn-export-pdf:hover {
+    transform: translateY(-2px);
+  }
+  
+  .btn-export-pdf .icon {
+    margin-right: 8px;
+  }
