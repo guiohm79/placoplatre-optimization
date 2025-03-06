@@ -2,8 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { X, Edit, Check } from 'lucide-react';
 import { MODELES_OUVERTURES, appliquerModele } from '../utils/modelesOuvertures';
 
-console.log("MODELES_OUVERTURES:", MODELES_OUVERTURES);
-
 function OuvertureItem({ 
   ouverture, 
   isSelected, 
@@ -50,6 +48,11 @@ function OuvertureItem({
     onChange(ouverture.id, 'largeur', nouvelleOuverture.largeur);
     onChange(ouverture.id, 'hauteur', nouvelleOuverture.hauteur);
     
+    // Corriger la classe CSS en normalisant le type (sans accents, tout en minuscules)
+    if (newType === 'fenetre') {
+      onChange(ouverture.id, 'classeCSS', 'fenetre');
+    }
+    
     // Propriétés spécifiques
     if (newType === 'tuyau d\'eau') {
       onChange(ouverture.id, 'forme', 'rond');
@@ -75,12 +78,15 @@ function OuvertureItem({
 
   // Mettre à jour les dimensions en fonction du nombre d'éléments et de la disposition
   const updateDimensionsFromNbElements = (nb, disp) => {
-    console.log("updateDimensionsFromNbElements appelé avec:", nb, disp);
     const typeBase = ouverture.typeBase || ouverture.type;
     
     if (typeBase === 'prise' || typeBase === 'interrupteur') {
       const modele = MODELES_OUVERTURES[typeBase];
-      console.log("Modèle trouvé:", modele);
+      
+      if (!modele) {
+        console.error(`Modèle non trouvé pour le type: ${typeBase}`);
+        return;
+      }
       
       // Dimensions de base pour un élément
       const largeurBase = modele.largeur;
@@ -95,8 +101,6 @@ function OuvertureItem({
         nouvelleLargeur = largeurBase;
         nouvelleHauteur = hauteurBase * nb;
       }
-      
-      console.log("Nouvelles dimensions:", nouvelleLargeur, "x", nouvelleHauteur);
       
       onChange(ouverture.id, 'nbElements', nb);
       onChange(ouverture.id, 'disposition', disp);

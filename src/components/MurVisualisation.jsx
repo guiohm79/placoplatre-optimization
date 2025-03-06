@@ -280,7 +280,10 @@ function MurVisualisation({
           {ouvertures.map((ouverture) => {
   // Pour les tuyaux, utiliser une forme ronde
   const isTuyau = ouverture.typeBase === 'tuyau d\'eau' || ouverture.type === 'tuyau d\'eau';
-  const className = `ouverture ${ouverture.type.replace(/\s/g, '-').replace(/'/g, '-').toLowerCase()} ${ouvertureSelectionneeId === ouverture.id ? 'selected' : ''}`;
+  const typeCSS = ouverture.classeCSS || 
+                ouverture.type.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+                  .replace(/\s/g, '-').replace(/'/g, '-').toLowerCase();
+const className = `ouverture ${typeCSS} ${ouvertureSelectionneeId === ouverture.id ? 'selected' : ''}`;
   
   return (
     <div
