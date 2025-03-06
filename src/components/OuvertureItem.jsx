@@ -149,7 +149,7 @@ function OuvertureItem({
                 onChange={handleTypeChange}
               >
                 <option value="porte">Porte</option>
-                <option value="fenêtre">Fenêtre</option>
+                <option value="fenetre">Fenêtre</option>
                 <option value="prise">Prise</option>
                 <option value="interrupteur">Interrupteur</option>
                 <option value="tuyau d'eau">Tuyau d'eau</option>
