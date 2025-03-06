@@ -7,7 +7,7 @@ import { optimiserTousMurs } from '../utils/optimisation';
 import ToggleChutes from './ToggleChutes';
 import ResultatsGlobaux from './ResultatsGlobaux';
 import { validerDimensionsMur, validerOuverture } from '../utils/validators';
-import { Calculator, Download, Settings, Sun, Moon } from 'lucide-react';
+import { Calculator, Download, Settings, Sun, Moon, X } from 'lucide-react';
 import '../styles/main.css';
 import '../styles/components.css';
 import { exporterResultatsEnPDF } from '../utils/pdfExport';
@@ -22,17 +22,14 @@ function App() {
     hauteur: 250  // cm
   });
   
-  // État pour les murs du projet
+  // État pour les murs du projet - plus d'ouvertures par défaut !
   const [murs, setMurs] = useState([
     {
       id: 1,
       nom: "Mur 1",
       largeur: 300,
       hauteur: 250,
-      ouvertures: [
-        { id: 101, x: 50, y: 0, largeur: 90, hauteur: 210, type: 'porte' },
-        { id: 102, x: 180, y: 50, largeur: 100, hauteur: 100, type: 'fenêtre' }
-      ]
+      ouvertures: []
     },
     {
       id: 2,
@@ -49,7 +46,7 @@ function App() {
   // État pour le thème (clair/sombre)
   const [darkMode, setDarkMode] = useState(false);
 
-  // 2. Ajouter cet état avec les autres états (vers la ligne 48)
+  // État pour la réutilisation des chutes
   const [utiliserChutes, setUtiliserChutes] = useState(true);
 
   // État pour le mur actuellement sélectionné
@@ -64,9 +61,12 @@ function App() {
   // État pour le résultat de l'optimisation
   const [resultat, setResultat] = useState(null);
 
-
- // pdf
+  // État pour le PDF
   const [showPdfPreview, setShowPdfPreview] = useState(false);
+  
+  // États pour le choix du type d'ouverture
+  const [showTypeSelector, setShowTypeSelector] = useState(false);
+  const [newOuverturePosition, setNewOuverturePosition] = useState({ x: 30, y: 30 });
   
   // Effet pour appliquer le thème
   useEffect(() => {
@@ -151,37 +151,38 @@ function App() {
     }));
   };
   
-  // Pour ajouter une nouvelle ouverture au mur sélectionné
-  const ajouterOuverture = () => {
-    // Récupérer le mur actuel
+  // Ouvrir le sélecteur de type d'ouverture
+  const openOuvertureSelector = () => {
     const murActuel = murs.find(m => m.id === murSelectionneeId);
     
-    // Position intelligente pour éviter les superpositions
+    // Calculer une position intelligente
     let posX = 30;
     let posY = 30;
     
-    // Si on a déjà des ouvertures, on décale un peu
+    // Si on a déjà des ouvertures, décaler un peu
     if (murActuel.ouvertures.length > 0) {
-      // Un peu à droite de la dernière
-      const dernière = murActuel.ouvertures[murActuel.ouvertures.length - 1];
-      posX = Math.min(murActuel.largeur - 100, dernière.x + 120);
+      const derniere = murActuel.ouvertures[murActuel.ouvertures.length - 1];
+      posX = Math.min(murActuel.largeur - 100, derniere.x + 120);
       
-      // Si on sort du mur, on va à la ligne
       if (posX + 90 > murActuel.largeur) {
         posX = 30;
-        posY = Math.min(murActuel.hauteur - 100, dernière.y + 120);
+        posY = Math.min(murActuel.hauteur - 100, derniere.y + 120);
       }
     }
     
-    // Base d'ouverture simple
+    setNewOuverturePosition({ x: posX, y: posY });
+    setShowTypeSelector(true);
+  };
+  
+  // Créer l'ouverture avec le type choisi
+  const createOuverture = (type) => {
     const baseOuverture = {
       id: Date.now(),
-      x: posX,
-      y: posY
+      x: newOuverturePosition.x,
+      y: newOuverturePosition.y
     };
     
-    // On laisse le type par défaut (comme avant)
-    const nouvelleOuverture = appliquerModele('porte', baseOuverture);
+    const nouvelleOuverture = appliquerModele(type, baseOuverture);
     
     console.log("Ajout d'une nouvelle ouverture:", nouvelleOuverture);
     
@@ -196,6 +197,7 @@ function App() {
     }));
     
     setOuvertureSelectionneeId(nouvelleOuverture.id);
+    setShowTypeSelector(false);
   };
   
   // Pour supprimer une ouverture du mur sélectionné
@@ -276,6 +278,7 @@ function App() {
       return m;
     }));
   };
+  
   // Fonction pour calculer l'optimisation
   const optimiserDecoupes = () => {
     // Vérifier s'il y a des erreurs
@@ -351,7 +354,7 @@ function App() {
             ouvertureSelectionneeId={ouvertureSelectionneeId}
             onSelectOuverture={setOuvertureSelectionneeId}
             onModifierOuverture={modifierOuverture}
-            onAjouterOuverture={ajouterOuverture}
+            onAjouterOuverture={openOuvertureSelector}
             onSupprimerOuverture={supprimerOuverture}
             erreurs={erreurs}
           />
@@ -411,14 +414,37 @@ function App() {
           {resultat && <ResultatsGlobaux resultat={resultat} murs={murs} />}
         </div>
       </div>
-        <PdfPreviewModal
-          isOpen={showPdfPreview}
-          onClose={() => setShowPdfPreview(false)}
-          resultat={resultat}
-          murs={murs}
-          dimensionsPlaque={plaqueDimensions}
-          onExport={handleExportPdf}
-        />
+      
+      <PdfPreviewModal
+        isOpen={showPdfPreview}
+        onClose={() => setShowPdfPreview(false)}
+        resultat={resultat}
+        murs={murs}
+        dimensionsPlaque={plaqueDimensions}
+        onExport={handleExportPdf}
+      />
+      
+      {/* Sélecteur de type d'ouverture */}
+      {showTypeSelector && (
+        <div className="modal-overlay">
+          <div className="modal-container" style={{ maxWidth: "400px", padding: "20px" }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+              <h3 style={{ margin: 0 }}>Choisir le type d'ouverture</h3>
+              <button className="btn-icon" onClick={() => setShowTypeSelector(false)}>
+                <X size={20} />
+              </button>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px' }}>
+              <button className="btn btn-secondary" onClick={() => createOuverture('porte')}>Porte</button>
+              <button className="btn btn-secondary" onClick={() => createOuverture('fenêtre')}>Fenêtre</button>
+              <button className="btn btn-secondary" onClick={() => createOuverture('prise')}>Prise</button>
+              <button className="btn btn-secondary" onClick={() => createOuverture('interrupteur')}>Interrupteur</button>
+              <button className="btn btn-secondary" onClick={() => createOuverture('tuyau d\'eau')}>Tuyau d'eau</button>
+              <button className="btn btn-secondary" onClick={() => createOuverture('autre')}>Autre</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

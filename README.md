@@ -57,6 +57,7 @@ npm start
 - [X] Permettre le déplacement des ouvertures par drag & drop (à finaliser)
 - [ ] Ajouter une échelle de visualisation plus précise
 - [ ] Permettre de zoomer/dézoomer avec la molette de la souris
+- [ ] La visualisation des ouvertures est brouillon (reduire la taille de la police?)
 
 ### Développement et qualité
 - [ ] Ajouter des tests unitaires
@@ -87,7 +88,7 @@ src/
 
 - L'export PDF donne deux fois le meme plan (mur 1 et 2 sont identique)
 - Certaines validations d'ouvertures peuvent bloquer l'utilisateur dans des cas spécifiques
-- Le choix des ouvertures n'est pas correcte, 
+- La configuration des ouvertures se fait mal, (exemple tuyau, le diametre reste a 10cm)
 
 
 

@@ -110,7 +110,7 @@ function MurForm({
               <h3 style={{ margin: 0, fontSize: '1rem' }}>Ouvertures</h3>
               <button 
                 className="btn btn-sm btn-secondary" 
-                onClick={onAjouterOuverture}
+                onClick={onAjouterOuverture}  // Changer cette ligne
                 title="Ajouter une ouverture"
               >
                 <Plus size={16} />
