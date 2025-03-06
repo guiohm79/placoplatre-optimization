@@ -153,14 +153,34 @@ function App() {
   
   // Pour ajouter une nouvelle ouverture au mur sélectionné
   const ajouterOuverture = () => {
-    // Définir une ouverture de base avec juste l'ID et la position
+    // Récupérer le mur actuel
+    const murActuel = murs.find(m => m.id === murSelectionneeId);
+    
+    // Position intelligente pour éviter les superpositions
+    let posX = 30;
+    let posY = 30;
+    
+    // Si on a déjà des ouvertures, on décale un peu
+    if (murActuel.ouvertures.length > 0) {
+      // Un peu à droite de la dernière
+      const dernière = murActuel.ouvertures[murActuel.ouvertures.length - 1];
+      posX = Math.min(murActuel.largeur - 100, dernière.x + 120);
+      
+      // Si on sort du mur, on va à la ligne
+      if (posX + 90 > murActuel.largeur) {
+        posX = 30;
+        posY = Math.min(murActuel.hauteur - 100, dernière.y + 120);
+      }
+    }
+    
+    // Base d'ouverture simple
     const baseOuverture = {
       id: Date.now(),
-      x: 10,
-      y: 10
+      x: posX,
+      y: posY
     };
     
-    // Appliquer le modèle par défaut (porte)
+    // On laisse le type par défaut (comme avant)
     const nouvelleOuverture = appliquerModele('porte', baseOuverture);
     
     console.log("Ajout d'une nouvelle ouverture:", nouvelleOuverture);
@@ -177,7 +197,6 @@ function App() {
     
     setOuvertureSelectionneeId(nouvelleOuverture.id);
   };
-  
   
   // Pour supprimer une ouverture du mur sélectionné
   const supprimerOuverture = (id) => {
